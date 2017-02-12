@@ -1,8 +1,12 @@
-\section{Introduction}
+\section{Problem description}
 
-Main paper: \cite{NIPS2016_6057}
+Until recently, recurrent neural networks (RNNs), used for sequential processing, were limited by the fact that within-sequence memory was limited to short-term only (long-term memory was limited to between-sequence memory). The ``fast weights'' method introduced in the paper to be analyzed in this project \cite{NIPS2016_6057} addresses this limitation by providing the network with the capacity to store information about a given sequence during its duration (to be used during each step in the hidden layers). We will provide a full analysis and explanation of the methology, and replicate one of the empirical tests of the method, which compares its performance on an associative retrieval task to that of an iRNN and an LSTM.
 
-Where LSTM fits into historical picture: \cite{Schmidhuber201585}
+\section{Survey of prior work}
+
+Recurrent neural networks (RNNs) are well-suited for learning from sequential data since weights are shared among different stages of the sequence \cite[p. 373]{Goodfellow-et-al-2016}. One major issue in training RNNs with many layers was that the gradients (of the error with respect to a particular weight) end up becoming very large or small \cite[p. 16]{DBLP:journals/nn/Schmidhuber15}. This was overcome by the introduction of the long short-term memory network (LSTM RNN), whose activation function has a constant derivative and thus does not explode or vanish \cite[p. 19]{DBLP:journals/nn/Schmidhuber15}.
+
+\{Next: explain weakness of LSTMs and how introduction of fast associative memory addresses that weakness.\}
 
 Hopfield nets, associative memory: \cite{Mackay03informationtheory}
 
@@ -14,7 +18,28 @@ Adam optimizer: \cite{1412.6980}
 
 IRNN definition: \cite{1511.03771}
 
-\section{Problem description}
-\section{Survey of prior work}
 \section{Preliminary plan}
 
+Our term paper will first present the fast associative memory methodology and place it in the context of methods that led to its development. We will provide an extended description and derivation of the methodology for the purpose of verifying its properties. We will also replicate section 4.1 of the paper, which compares the fast associative memory method's performance on an associative retrieval task with that of an Identity-RNN (iRNN) and LSTM.
+
+
+\begin{table}
+  \caption{Project timeline}
+  \label{tab:freq}
+  \begin{tabular}{ccl}
+    \toprule
+    Week & Task & Deliverable\\
+    \midrule
+    Week 1 () & & \\
+    Week 2 () & & \\
+    Week 3 () & & \\
+    Week 4 () & & \\
+    Week 5 () & & \\
+    Week 6 () & & \\
+    Week 7 () & & \\
+    Week 8 () & & \\
+    Week 9 () & & \\
+    Week 10 () & & \\
+  \bottomrule
+\end{tabular}
+\end{table}
