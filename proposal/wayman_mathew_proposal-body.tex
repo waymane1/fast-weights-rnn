@@ -4,7 +4,7 @@ Until recently, recurrent neural networks (RNNs), used for sequential processing
 
 \section{Survey of prior work}
 
-Recurrent neural networks (RNNs) are well-suited for learning from sequential data since weights are shared among different stages of the sequence \cite[p. 373]{Goodfellow-et-al-2016}. One major issue in training RNNs with many layers was that the gradients (of the error with respect to a particular weight) end up becoming very large or small \cite[p. 16]{DBLP:journals/nn/Schmidhuber15}. This was overcome by the introduction of the long short-term memory network (LSTM RNN), whose activation function has a constant derivative and thus does not explode or vanish \cite[p. 19]{DBLP:journals/nn/Schmidhuber15}.
+Recurrent neural networks (RNNs) are well-suited for learning from sequential data since weights are shared among different stages of the sequence \cite[p. 373]{Goodfellow-et-al-2016}. In RNNs, hidden states essentially act as short-term memory for previous states with inputs and hidden states helping to define the input and future hidden state. One major issue in training RNNs with many layers was that the gradients (of the error with respect to a particular weight) end up becoming very large or small \cite[p. 16]{DBLP:journals/nn/Schmidhuber15}. This was overcome by the introduction of the long short-term memory network (LSTM RNN), whose activation function has a constant derivative and thus does not explode or vanish \cite[p. 19]{DBLP:journals/nn/Schmidhuber15}.
 
 \{Next: explain weakness of LSTMs and how introduction of fast associative memory addresses that weakness.\}
 
@@ -20,7 +20,7 @@ IRNN definition: \cite{1511.03771}
 
 \section{Preliminary plan}
 
-Our term paper will first present the fast associative memory methodology and place it in the context of methods that led to its development. We will provide an extended description and derivation of the methodology for the purpose of verifying its properties. We will also replicate section 4.1 of the paper, which compares the fast associative memory method's performance on an associative retrieval task with that of an Identity-RNN (iRNN) and LSTM.
+Our term paper will first present the fast associative memory methodology and place it in the context of methods that led to its development. We will provide an extended description and derivation of the methodology for the purpose of verifying its properties. Our goal will be to also replicate section 4.1 of the paper, which compares the fast associative memory method's performance on an associative retrieval task with that of an Identity-RNN (iRNN) and LSTM.
 
 
 \begin{table}
