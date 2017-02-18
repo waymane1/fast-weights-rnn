@@ -1,18 +1,17 @@
 \section{Problem description}
 
-Until recently, recurrent neural networks (RNNs), used for sequential processing, were limited by the fact that within-sequence memory was limited to short-term only (long-term memory was limited to between-sequence memory). The ``fast weights'' method introduced in the paper to be analyzed in this project \cite{DBLP:conf/nips/BaHMLI16} addresses this limitation by providing the network with the capacity to store information about a given sequence during its duration (to be used during each step in the hidden layers). We will provide a full analysis and explanation of the methology, and replicate one of the empirical tests of the method, which compares its performance on an associative retrieval task to that of an iRNN and a long short-term memory network, or LSTM \cite{DBLP:journals/neco/HochreiterS97}.
+Until recently, recurrent neural networks (RNNs), used for sequential processing, did not have a good way to share memory between sequences.
+The Fast Weights method introduced in the paper to be analyzed in this project \cite{DBLP:conf/nips/BaHMLI16} addresses this limitation by providing the network with the capacity to store information about a given sequence during its duration to be used in the upcoming sequence. We will provide a full analysis and explanation of the methology, and replicate one of the empirical tests of the method, which compares its performance on an associative retrieval task to that of an iRNN and a long short-term memory network, or LSTM \cite{DBLP:journals/neco/HochreiterS97}.
 
 \section{Survey of prior work}
 
-Recurrent neural networks (RNNs) are well-suited for learning from sequential data since weights are shared among different stages of the sequence \cite[p. 373]{Goodfellow-et-al-2016}. In particular, Recurrent Neural Nets have been shown to perform well in tasks of Speech to Text conversion, creation of Language models for both characters and words \cite{DBLP:conf/icml/SutskeverMH11} and even frame by frame video analyses \cite{mnih}. In RNNs, hidden states essentially act as short-term memory for previous states with inputs and hidden states helping to define the input and future hidden state. One major issue in training RNNs with many layers is that the error gradients end up becoming very large or small \cite[p. 16]{DBLP:journals/nn/Schmidhuber15} which implies that even if the network can be trained, the effect of hidden cells corresponding to much earlier values of the sequence is almost non-existent. This was overcome by the introduction of the long short-term memory network (LSTM network), whose activation function has a constant derivative and thus does not explode or vanish \cite[p. 19]{DBLP:journals/nn/Schmidhuber15}. Unfortunately, the LSTM's memory is still limited to an amount proportional to the number of hidden units in a sequence \cite[p. 1]{DBLP:conf/nips/BaHMLI16}. Ba et al. propose the Fast Associative Memory method to allow sequence-to-sequence memory in a recurrent networks.
-
-Hopfield nets, associative memory: \cite{Mackay03informationtheory}
+Recurrent neural networks (RNNs) are well-suited for learning from sequential data since weights are shared among different stages of the sequence \cite[p. 373]{Goodfellow-et-al-2016}. In particular, RNNs have been shown to perform well in tasks of speech-to-text conversion, creation of language models for both characters and words \cite{DBLP:conf/icml/SutskeverMH11} and even frame by frame video analyses \cite{mnih}. In RNNs, a given hidden state essentially acts as short-term memory for the previous state, determining the next hidden state together with the next input. One major issue in training RNNs with long input sequences is that the error gradients end up becoming very large or small \cite[p. 16]{DBLP:journals/nn/Schmidhuber15} which implies that even if the network can be trained, the effect of an early hidden state on the current hidden state is practically non-existent. This problem was overcome by the introduction of the long short-term memory RNN (LSTM RNN), whose activation function has a constant derivative and thus does not explode or vanish \cite[p. 19]{DBLP:journals/nn/Schmidhuber15}. Unfortunately, the LSTM RNN's memory is still limited to an amount proportional to the number of hidden units in a sequence \cite[p. 1]{DBLP:conf/nips/BaHMLI16}. Ba et al. propose the Fast Weights method to allow sequence-to-sequence memory in a recurrent network. We also note that Hopfield nets \cite{MacKay:2002:ITI:971143} implemented a similar storage rule \cite[p. 2]{DBLP:conf/nips/BaHMLI16} which we will review in our paper.
 
 \section{Preliminary plan}
 
-Our term paper will first present the fast associative memory methodology and place it in the context of methods that led to its development. We will provide an extended description and derivation of the methodology for the purpose of verifying its properties. Our goal will be to also replicate section 4.1 of the paper, which compares the fast associative memory method's performance on an associative retrieval task with that of an Identity-RNN, or iRNN \cite{DBLP:journals/corr/TalathiV15}, and LSTM \cite{DBLP:conf/nips/BaHMLI16}.
+Our term paper will first present the Fast Weights methodology and place it in the context of methods that led to its development. We will provide an extended description and derivation of the methodology for the purpose of verifying its properties. Our goal will be to also replicate Section 4.1 of the paper, which compares the Fast Weights' performance on an associative retrieval task with that of an Identity-RNN (iRNN) \cite{DBLP:journals/corr/TalathiV15}, and an LSTM RNN \cite{DBLP:conf/nips/BaHMLI16}.
 
-This project is intended to understand the foundational math and reasoning behind pursuing the use of Fast Weights in a network. The initial stage of our project will be to perform a thorough proof and derivation of the equations for RNNs, and clearly explain the issues that led to the creation of LSTM networks. For instance, we will explain the ``long-term memory issue'' in RNNs. The expression of the hidden unit $h_t$ at time $t$ is:
+This project is intended to verify the foundational math and reasoning which justify the use of Fast Weights in a network. This will require us to retrace the work leading up to the introduction of Fast Weights. The initial stage of our project will be to perform a thorough proof and derivation of the equations for RNNs, and clearly explain the issues that led to the creation of LSTM RNNs. For instance, we will explain the ``long-term memory issue'' in RNNs beginning as follows. The expression of the hidden unit $h_t$ at time $t$ is:
 
 \begin{equation*}
   h_t = g(\vect{W} \cdot x_t + \vect{U} \cdot h_{t-1} + b_h)
@@ -24,18 +23,11 @@ After $t$ time steps, we get:
   h_t = g(\vect{W} \cdot x_t + \vect{U} \cdot g(\cdots g(\vect{W} \cdot x_{t-T} + \vect{U} \cdot h_{t-T} + b_h) \cdots) + b_h)
 \end{equation*}
 
-Because of the $T$ nested multiplications by $\textbf U$, the effect of $h_t-T$ on $h_t$ is negligible (namely, the network does not have ``long-term memory''). We will provide a full exposition of how this problem manifests during training of the network.
+Because of the $T$ nested multiplications of $h_{t-T}$ by $\vect{U}$, the effect of $h_{t-T}$ on $h_t$ is negligible (namely, the network does not have ``long-term memory''). We will provide a full exposition of how this problem manifests itself when the network is trained.
 
-The next stage of the project will involve explaining LSTM networks, their improvements on RNNs, and their limitations. We will then explain the mathematics of Fast Weights and the Fast Associative Memory Network, as well as several methodologies used in their implementation in the paper being studied such as layer normalization \cite{DBLP:journals/corr/BaKH16}, grid search \cite{Goodfellow-et-al-2016}, and the Adam optimizer \cite{DBLP:journals/corr/KingmaB14}.
+The next stage of the project will involve explaining LSTM RNNs, their improvements over RNNs, and their limitations. We will then explain the mathematics of Fast Weights in RNNs, as well as several methodologies used in their implementation in the paper being studied such as layer normalization \cite{DBLP:journals/corr/BaKH16}, grid search \cite{Goodfellow-et-al-2016}, and the Adam optimizer \cite{DBLP:journals/corr/KingmaB14}.
 
-Following that, we will implement the Fast Associative Memory Network in MATLAB.
-
-
-
-
-
-
-
+Following that, we will implement the Fast Associative Memory Network in MATLAB, and reproduce the analysis of Section 4.1 \cite{DBLP:conf/nips/BaHMLI16} of the paper to confirm the performance of Fast Weights as compared to the iRNN and the LSTM RNN.
 
 \begin{table*}[t]
   \caption{Project timeline}
@@ -44,16 +36,16 @@ Following that, we will implement the Fast Associative Memory Network in MATLAB.
     \toprule
     Week & Dates & Task & Deliverable\\
     \midrule
-    Week 1 & (2/6   - 2/13) & Background Reading & \\
-    Week 2 & (2/13  - 2/20) & Background Reading & Proposal\\
-    Week 3 & (2/20  - 2/27) & Data collection & \\
+    Week 1 & (2/6   - 2/13) & Background reading & \\
+    Week 2 & (2/13  - 2/20) & Background reading & Proposal\\
+    Week 3 & (2/20  - 2/27) & Data set construction & \\
     Week 4 & (2/27  - 3/6)  & Background, foundational proofs & \\
-    Week 5 & (3/6   - 3/13) & Compile data and preliminary run & \\
-    Week 6 & (3/20  - 3/27) & Report prep & Intermediate Report\\
-    Week 7 & (4/3   - 4/10) & Full implementation & \\
-    Week 8 & (4/10  - 4/17) & Run with Data and comparisons & \\
-    Week 9 & (4/17  - 4/24) & Report prep & \\
-    Week 10 & (4/24 - 5/1) & Report prep + Rehearse & Final Report \\
+    Week 5 & (3/6   - 3/13) & Partial implementation and preliminary run & \\
+    Week 6 & (3/20  - 3/27) & Compose Intermediate Report & Intermediate Report\\
+    Week 7 & (4/3   - 4/10) & Full implementation of networks & \\
+    Week 8 & (4/10  - 4/17) & Complete empirical analysis & \\
+    Week 9 & (4/17  - 4/24) & Compose Final Report & \\
+    Week 10 & (4/24 - 5/1) & Finish Final Report and rehearse Presentation & Final Report \\
     & & & Presentation\\
   \bottomrule
 \end{tabular}
