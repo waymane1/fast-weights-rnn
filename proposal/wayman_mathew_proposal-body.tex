@@ -23,8 +23,24 @@ LSTM: \cite{DBLP:journals/neco/GersSC00}, \cite{hochreiter1997}
 
 \section{Preliminary plan}
 
-Our term paper will first present the fast associative memory methodology and place it in the context of methods that led to its development. We will provide an extended description and derivation of the methodology for the purpose of verifying its properties. Our goal will be to also replicate section 4.1 of the paper, which compares the fast associative memory method's performance on an associative retrieval task with that of an Identity-RNN (iRNN) and LSTM.
+Our term paper will first present the fast associative memory methodology and place it in the context of methods that led to its development. We will provide an extended description and derivation of the methodology for the purpose of verifying its properties. Our goal will be to also replicate section 4.1 of the paper, which compares the fast associative memory method's performance on an associative retrieval task with that of an Identity-RNN (iRNN) and LSTM \cite{NIPS2016_6057}.
 
+This project is intended to understand the foundational math and reasoning behind pursuing the use of Fast Weights in LSTM networks. To do so, we must first perform a thorough proof and derivation of the research and developments that led to the creation of LSTM networks. This will form the initial stage of our project. Some of the components that need to be proven include the following:
+\begin{itemize}
+  \item
+  Speed at which weight matrix is diminished by BPTT corresponds to the shortness of memory.
+  \item
+  Given that expression of Hidden unit at time t is: \\
+  \begin{equation}
+    h_t = g(\textbf W \cdot x_t + \textbf U \cdot h_t-1 + b_h)
+  \end{equation}
+  after $t$ time steps, we get : \\
+  \begin{equation}
+    h_t = g(\textbf W \cdot x_t + \textbf U \cdot g(\cdots g(\textbf W \cdot x_t-T + U \cdot h_t-T + b_h) \cdots) + b_h)
+  \end{equation}
+\end{itemize}
+
+Because of the $T$ nested multiplications by $\textbf U$, the effect of $h_t-T$ ("Long Term Memory") is negligible.
 
 \begin{table*}[t]
   \caption{Project timeline}
@@ -40,7 +56,7 @@ Our term paper will first present the fast associative memory methodology and pl
     Week 5 & (3/6   - 3/13) & Compile data and preliminary run & \\
     Week 6 & (3/20  - 3/27) & Report prep & Intermediate Report\\
     Week 7 & (4/3   - 4/10) & Full implementation & \\
-    Week 8 & (4/10  - 4/17) & Run with Data and comparison & \\
+    Week 8 & (4/10  - 4/17) & Run with Data and comparisons & \\
     Week 9 & (4/17  - 4/24) & Report prep & \\
     Week 10 & (4/24 - 5/1) & Report prep + Rehearse & Final Report \\
     & & & Presentation\\
