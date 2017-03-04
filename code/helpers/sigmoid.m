@@ -1,0 +1,1 @@
+function sig = sigmoid(v)% SIGMOID calculates and returns the signmoid of the input.% The gradient can be easily derived from here.%%  sig = 1.0 ./ (1.0 + exp(-vs));end

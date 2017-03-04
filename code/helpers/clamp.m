@@ -1,0 +1,1 @@
+function v = clamp(value, lower, upper)% CLAMP forces an input to be reassigned to either upper or lower,% if it is greater than either.%%  v = min ( max (value, lower), upper);end
