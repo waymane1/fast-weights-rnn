@@ -29,6 +29,20 @@ The next stage of the project will involve explaining LSTM RNNs, their improveme
 
 Following that, we will implement the Fast Associative Memory Network in MATLAB, and reproduce the analysis of Section 4.1 \cite{DBLP:conf/nips/BaHMLI16} of the paper to confirm the performance of Fast Weights as compared to the iRNN and the LSTM RNN.
 
+\section{Memory and recurrent neural networks}
+
+Paragraph about the neural perspective.
+
+Paragraph about treating as signals, etc.
+
+There are two major ways of incorporating the temporal element of sequential data in neural network learning. One is providing a memory structure that can present data from multiple time steps to a network that does not itself depend on the time variable (e.g. the time element is handled externally) \cite[p. 672-673]{Haykin:2009:NNC:1213811}. The other is incorporating the time element directly inside the network via the use of feedback. Feedback occurs in a system when the output of an element of the system eventually affects the input to that same element \cite[p. 18]{Haykin:2009:NNC:1213811}. There are two main types of feedback: local feedback and global feedback. Local feedback occurs when the output from an element directly feeds into that element's input, and global feedback occurs when the output eventually affects the input after passing through other elements first \cite[p. 673]{Haykin:2009:NNC:1213811}.
+
+Recurrent neural networks are networks containing at least one feedback loop of either type \cite[p. 23]{Haykin:2009:NNC:1213811}. Feedback loops are inherently time-delay elements, where the output from an element is fed into a new element with a delay (in other words, transmission from one node to another is not instantaneous).
+
+One major use of recurrent neural networks is to provide \emph{associative memory}. In the storage phase, an associative memory is presented with key patterns and stores memorized patterns or values which are implicitly associated with their key patterns. In the recall phase, when presented with a distorted or incomplete version of a key pattern, the memory produces the associated value pattern \cite[p. 38]{Haykin:2009:NNC:1213811}.
+
+Let $s + l = N$, where $s$ is the total number of neurons used for storage of patterns and $l$ is the number of neurons that can be used for learning. One metric used when designing an associative memory is the ratio $q = \frac{s}{N} = \frac{s}{s + l}$. The total machine capacity ($N$) is limited to some value by resource constraints. Note that for a small $q$, the performance may be very good, though $s$ is small relative to $l$: in other words, the network must use a large number of neurons $l$ to recall very well only a few patterns. Therefore we seek to make $q$ as large as possible while still achieving good performance, i.e. the network should be able to recall correctly many patterns by using as few neurons for learning as possible \cite[p. 39]{Haykin:2009:NNC:1213811}.
+
 \begin{table*}[t]
   \caption{Project timeline}
   \label{tab:freq}

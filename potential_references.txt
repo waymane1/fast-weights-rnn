@@ -15,10 +15,3 @@
   bibsource = {dblp computer science bibliography, http://dblp.org}
 }
 
-@book{haykin2009neural,
-  title={Neural networks and learning machines},
-  author={Haykin, Simon S and Haykin, Simon S and Haykin, Simon S and Haykin, Simon S},
-  volume={3},
-  year={2009},
-  publisher={Pearson Upper Saddle River, NJ, USA:}
-}
