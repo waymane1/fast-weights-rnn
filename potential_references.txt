@@ -15,3 +15,20 @@
   bibsource = {dblp computer science bibliography, http://dblp.org}
 }
 
+
+
+@article{DBLP:journals/jc/Pineda88,
+  author    = {Fernando J. Pineda},
+  title     = {Dynamics and architecture for neural computation},
+  journal   = {J. Complexity},
+  volume    = {4},
+  number    = {3},
+  pages     = {216--245},
+  year      = {1988},
+  url       = {http://dx.doi.org/10.1016/0885-064X(88)90021-0},
+  doi       = {10.1016/0885-064X(88)90021-0},
+  timestamp = {Mon, 07 Nov 2005 15:33:09 +0100},
+  biburl    = {http://dblp.uni-trier.de/rec/bib/journals/jc/Pineda88},
+  bibsource = {dblp computer science bibliography, http://dblp.org}
+}
+

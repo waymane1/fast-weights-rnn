@@ -43,6 +43,8 @@ One major use of recurrent neural networks is to provide \emph{associative memor
 
 Let $s + l = N$, where $s$ is the total number of neurons used for storage of patterns and $l$ is the number of neurons that can be used for learning. One metric used when designing an associative memory is the ratio $q = \frac{s}{N} = \frac{s}{s + l}$. The total machine capacity ($N$) is limited to some value by resource constraints. Note that for a small $q$, the performance may be very good, though $s$ is small relative to $l$: in other words, the network must use a large number of neurons $l$ to recall very well only a few patterns. Therefore we seek to make $q$ as large as possible while still achieving good performance, i.e. the network should be able to recall correctly many patterns by using as few neurons for learning as possible \cite[p. 39]{Haykin:2009:NNC:1213811}.
 
+\subsection{The additive neural model}
+
 \begin{table*}[t]
   \caption{Project timeline}
   \label{tab:freq}
