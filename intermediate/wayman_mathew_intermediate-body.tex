@@ -39,11 +39,48 @@ There are two major ways of incorporating the temporal element of sequential dat
 
 Recurrent neural networks are networks containing at least one feedback loop of either type \cite[p. 23]{Haykin:2009:NNC:1213811}. Feedback loops are inherently time-delay elements, where the output from an element is fed into a new element with a delay (in other words, transmission from one node to another is not instantaneous).
 
-One major use of recurrent neural networks is to provide \emph{associative memory}. In the storage phase, an associative memory is presented with key patterns and stores memorized patterns or values which are implicitly associated with their key patterns. In the recall phase, when presented with a distorted or incomplete version of a key pattern, the memory produces the associated value pattern \cite[p. 38]{Haykin:2009:NNC:1213811}.
+One major use of recurrent neural networks is to provide \emph{associative memory}. In the storage phase, an associative memory is presented with \emph{key patterns} and stores memorized patterns or \emph{values} which are implicitly associated with their key patterns. In the recall phase, when presented with a distorted or incomplete version of a key pattern, the memory produces the associated value pattern \cite[p. 38]{Haykin:2009:NNC:1213811}.
 
 Let $s + l = N$, where $s$ is the total number of neurons used for storage of patterns and $l$ is the number of neurons that can be used for learning. One metric used when designing an associative memory is the ratio $q = \frac{s}{N} = \frac{s}{s + l}$. The total machine capacity ($N$) is limited to some value by resource constraints. Note that for a small $q$, the performance may be very good, though $s$ is small relative to $l$: in other words, the network must use a large number of neurons $l$ to recall very well only a few patterns. Therefore we seek to make $q$ as large as possible while still achieving good performance, i.e. the network should be able to recall correctly many patterns by using as few neurons for learning as possible \cite[p. 39]{Haykin:2009:NNC:1213811}.
 
-\subsection{The additive neural model}
+There are two main types of associative memory, \emph{autoassociative} and \emph{heteroassociative memory}: in autoassociative memory, the memorized patterns are the same as the key patterns, whereas in heteroassociative memory, the memorized patterns are different \cite[p. 38]{Haykin:2009:NNC:1213811}. Different network structures may be more suited for one task than the other.
+
+\subsection{A simple example of an associative memory model}
+
+Consider an associative memory which learns the single key pattern $\vect{f}$ and value $\vect{g}$ where both are vectors (this example is from \cite[p. 163-165]{anderson1995introduction}). We let the system be the matrix
+
+\begin{equation*}
+\vect{A} = \eta \vect{g}\vect{f}^T
+\end{equation*}
+
+The system performs perfectly:
+%
+\begin{equation*}
+\vect{g}^\prime = \vect{A}\vect{f} = \vect{g}\vect{f}^T\vect{f} \propto \vect{g}
+\end{equation*}
+%
+since the $\vect{g}^\prime$ that is recalled is proportional to the value $\vect{g}$ associated with the input $\vect{f}$.
+
+Now consider a set of key patterns $\vect{f}_i$ and associated values $\vect{g}_i$ where all $\vect{f}_i$ are orthogonal (we write $\vect{f}_i \rightarrow \vect{g}_i$ to denote the associations). Letting
+
+\begin{equation*}
+\vect{A}_i = \vect{g}_i \vect{f}_i^T, \qquad \vect{A} = \sum_{i} \vect{A}_i
+\end{equation*}
+
+We see that again $\vect{A}$ performs recall perfectly since for all $j$,
+
+\begin{align*}
+  \vect{A}\vect{f}_j & = \sum_{i}\vect{A}_i \vect{f}_j = \sum_{k \neq j} \vect{A}_k \vect{f}_j + \vect{A}_j\vect{f}_j \\
+  & = \sum_{k \neq j} \vect{g}_k \vect{f}_k^T \vect{f}_j + \vect{g}_j = \vect{g}_j
+\end{align*}
+
+The above example suggests that outer products can be useful in constructing associative memory models. Using outer products to create memory storage is referred to ``the generalization of Hebb's postulate of learning'' \cite[p. 698]{Haykin:2009:NNC:1213811} because
+
+\subsection{The Hopfield network as an example of an autoassociative memory model}
+
+We examine below the Hopfield network, a well-known model that is suited for the autoassociative memory task and which is an application of the additive model of the neuron.
+
+\cite{Yegnanarayana:2004:ANN:1197006}.
 
 \begin{table*}[t]
   \caption{Project timeline}

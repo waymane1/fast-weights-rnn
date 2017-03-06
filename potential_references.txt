@@ -32,3 +32,15 @@
   bibsource = {dblp computer science bibliography, http://dblp.org}
 }
 
+
+
+@ARTICLE{Grossberg:2013,
+AUTHOR = {Grossberg, S. },
+TITLE   = {{R}ecurrent neural networks},
+YEAR	= 2013,
+JOURNAL	= Scholarpedia,
+VOLUME  = 8,
+NUMBER  = 2,
+PAGES   = 1888,
+NOTE   = {{revision no. 138057}},
+}
