@@ -156,7 +156,7 @@ Computing Machinery]
   \or % sigconf
     \def\ACM@fontsize{9pt}%
   \or % siggraph
-    \def\ACM@fontsize{11pt}%
+    \def\ACM@fontsize{10pt}%
    \or % sigplan
     \def\ACM@fontsize{9pt}%
    \or % sigchi

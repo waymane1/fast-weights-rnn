@@ -47,7 +47,7 @@ There are two main types of associative memory, \emph{autoassociative} and \emph
 
 \subsection{A simple example of an associative memory model}
 
-Consider an associative memory which learns the single key pattern $\vect{f}$ and value $\vect{g}$ where both are vectors (this example is from \cite[p. 163-165]{anderson1995introduction}). We let the system be the matrix
+Consider an associative memory which learns the single key pattern $\vect{f}$ and value $\vect{g}$ where both are vectors (this example is from \cite[p. 163-165]{Anderson95}). We let the system be the matrix
 
 \begin{equation*}
 \vect{A} = \eta \vect{g}\vect{f}^T
@@ -56,7 +56,7 @@ Consider an associative memory which learns the single key pattern $\vect{f}$ an
 The system performs perfectly:
 %
 \begin{equation*}
-\vect{g}^\prime = \vect{A}\vect{f} = \vect{g}\vect{f}^T\vect{f} \propto \vect{g}
+\vect{g}^\prime = \vect{A}\vect{f} = \eta\vect{g}\vect{f}^T\vect{f} \propto \vect{g}
 \end{equation*}
 %
 since the $\vect{g}^\prime$ that is recalled is proportional to the value $\vect{g}$ associated with the input $\vect{f}$.
@@ -74,9 +74,105 @@ We see that again $\vect{A}$ performs recall perfectly since for all $j$,
   & = \sum_{k \neq j} \vect{g}_k \vect{f}_k^T \vect{f}_j + \vect{g}_j = \vect{g}_j
 \end{align*}
 
-The above example suggests that outer products can be useful in constructing associative memory models. Using outer products to create memory storage is referred to ``the generalization of Hebb's postulate of learning'' \cite[p. 698]{Haykin:2009:NNC:1213811} because
+The above example suggests that outer products can be useful in constructing associative memory models. Using outer products to create memory storage is referred to ``the generalization of Hebb's postulate of learning'' \cite[p. 698]{Haykin:2009:NNC:1213811} since weight updates in Hebbian learning are calculated with outer products, as in the following example for a one-layer network \cite[p. 39-40]{fyfe2000}. For output $\vect{y} \in \mathbb{R}^m$ and input $\vect{x} \in \mathbb{R}^n$, if
 
-\subsection{The Hopfield network as an example of an autoassociative memory model}
+\begin{equation*}
+  y_i = \sum_{j} w_{ij} x_j, \qquad \Delta w_{ij} = \alpha x_j y_i
+\end{equation*}
+
+then
+
+\begin{equation*}
+\Delta w_{ij} = \alpha x_j \sum_k w_{ik} x_k = \alpha \sum_k w_{ik}x_j x_k
+\end{equation*}
+
+Letting $\alpha = \Delta t$,
+
+\begin{equation*}
+  \frac{\Delta w_{ij}}{\Delta t} = \sum_k w_{ik}x_j x_k
+\end{equation*}
+
+so as $\Delta t \rightarrow 0$,
+
+\begin{equation*}
+\frac{d}{dt}\vect{W}(t) = \vect{C}\vect{W}(t)
+\end{equation*}
+
+or, writing out the matrices fully,
+
+\begin{equation*}
+  \begin{split}
+  \begin{bmatrix}
+    \frac{dw_{11}}{dt} & \cdots & \frac{dw_{m1}}{dt} \\
+    \vdots & \vdots & \vdots \\
+    \frac{dw_{1n}}{dt} & \cdots & \frac{dw_{mn}}{dt} \\    
+  \end{bmatrix} = \begin{bmatrix}
+    x_1 x_1 & \cdots & x_n x_1 \\
+    \vdots & \cdots & \vdots \\
+    x_1 x_n & \cdots & x_n x_n 
+  \end{bmatrix} \\
+  & \hspace{-1.0cm}\begin{bmatrix}
+    w_{11} & \cdots & w_{m1} \\
+    \vdots & \cdots & \vdots \\
+    w_{1n} & \cdots & w_{mn}
+    \end{bmatrix}
+  \end{split}
+\end{equation*}
+
+Note that the simple example of autoassociative memory would correspond to the weights matrix initially being the zero matrix and having only one update, after which the memory can recall perfectly. In general the linear system just described will not converge without some constraints being imposed \cite[p. 40]{fyfe2000}. Since it is known that given orthogonal key patterns only one weight update is needed, the algorithm can be run without considering issues of convergence or stability of the general case. However, stability of such dynamical systems is essential for learning algorithms based in such systems to exist; we will consider this point below in more detail.
+
+Since not all sets of key values are orthogonal, the above system is inadequate for most cases. Before moving to other models we provide an overview of stability issues necessary for the design and evaluation of recurrent networks.
+
+\section{Stability in dynamic systems}
+
+Above it was noted that feedback is a way of introducing time lags into a dynamical system. Depending on the particulars of the system, feedback can lead a system to stability or cause it to diverge. We consider a simple example \cite[p. 18-21]{Haykin:2009:NNC:1213811} of a dynamical system with feedback. From this example we will see that if the operator mapping input to output is a weight matrix, and outputs are mapped to inputs through a linear additive function, the values of the weights will determine whether the system is stable or diverges.
+
+Consider the system defined by
+%
+\begin{equation*}
+y_k(n) = wx_j^\prime(n), \qquad x_j^\prime(n) = x_j(n) + z^{-1}[y_k(n)]
+\end{equation*}
+%
+where $z^{-1}$ is the unit time-delay operator, so $z^{-1}[y_k(n)] = y_k(n-1)$. Combining the two equations gives
+
+\begin{equation*}
+  y_k(n) = w \left(x_j(n) + z^{-1}[y_k(n)]\right)
+\end{equation*}
+
+\begin{equation*}
+  y_k(n)(1 - wz^{-1}) = wx_j(n)
+\end{equation*}
+
+\begin{equation*}
+  y_k(n) = w(1 - wz^{-1})^{-1}x_j(n)
+\end{equation*}
+
+Since
+%
+\begin{align*}
+  \sum_{l=0}^{\infty}w^l z^{-l} & = \sum_{l=0}^{\infty}\left(\frac{w}{z}\right)^l = \frac{1}{(1 - wz^{-1})} \\
+  & = (1 - wz^{-1})^{-1}
+\end{align*}
+%
+we write
+%
+\begin{equation*}
+  y_k(n) = w \sum_{l=0}^{\infty}w^l z^{-l}x_j(n) = \sum_{l=0}^{\infty}w^{l+1}x_j(n - l)
+\end{equation*}
+%
+where we have applied the unit-time delay operator to the $x_j$ term.
+
+We consider the case where $x_j(k)$ are sampled from, say, a Gaussian distribution whose positive mean is much smaller than the value of $x_j(0)$. We observe three cases:
+
+\begin{enumerate}
+\item If $|w| < 1$, the effect of the signal will decay towards $0$.
+\item If $w = 1$, the system will diverge with the trend of $y_k(n)$ being linear. 
+\item If $w > 1$, the system will diverge with the trend of $y_k(n)$ being exponential.  
+\end{enumerate}
+
+We note that the above system is a difference equation that is \emph{linear} (namely, the exponents of $x_j$ are to the first power only). Recurrent neural networks are generally \emph{nonlinear} (the exponents of $x_j$ are to powers greater than one) \cite[p. 6]{strogatz:2000}.
+
+\section{The Hopfield network as an example of an autoassociative memory model}
 
 We examine below the Hopfield network, a well-known model that is suited for the autoassociative memory task and which is an application of the additive model of the neuron.
 
