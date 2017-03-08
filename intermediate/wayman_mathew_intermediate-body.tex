@@ -119,13 +119,15 @@ or, writing out the matrices fully,
   \end{split}
 \end{equation*}
 
-Note that the simple example of autoassociative memory would correspond to the weights matrix initially being the zero matrix and having only one update, after which the memory can recall perfectly. In general the linear system just described will not converge without some constraints being imposed \cite[p. 40]{fyfe2000}. Since it is known that given orthogonal key patterns only one weight update is needed, the algorithm can be run without considering issues of convergence or stability of the general case. However, stability of such dynamical systems is essential for learning algorithms based in such systems to exist; we will consider this point below in more detail.
+Note that the simple example of autoassociative memory would correspond to the weights matrix initially being the zero matrix and having only one update, after which the memory can recall perfectly. In general the linear system just described will not converge without some constraints being imposed \cite[p. 40]{fyfe2000}. Since it is known that given orthogonal key patterns only one weight update is needed, the algorithm can be run without considering issues of convergence or stability of the general case. However, stability of such systems is essential for learning algorithms based in such systems to exist; we will consider this point below in more detail.
 
 Since not all sets of key values are orthogonal, the above system is inadequate for most cases. Before moving to other models we provide an overview of stability issues necessary for the design and evaluation of recurrent networks.
 
-\section{Stability in dynamic systems}
+\section{Stability, controllability and observability in dynamic systems}
 
-Above it was noted that feedback is a way of introducing time lags into a dynamical system. Depending on the particulars of the system, feedback can lead a system to stability or cause it to diverge. We consider a simple example \cite[p. 18-21]{Haykin:2009:NNC:1213811} of a dynamical system with feedback. From this example we will see that if the operator mapping input to output is a weight matrix, and outputs are mapped to inputs through a linear additive function, the values of the weights will determine whether the system is stable or diverges.
+A \emph{dynamic system} is a system whose state changes with time \cite[p. 675]{Haykin:2009:NNC:1213811}. Above it was noted that feedback is a way of introducing time lags into a dynamic system. Depending on the particulars of the system, feedback can lead a system to stability or cause it to diverge. We consider a simple example \cite[p. 18-21]{Haykin:2009:NNC:1213811} of a dynamic system with feedback. From this example we will see that if the operator mapping input to output is a weight matrix, and outputs are mapped to inputs through a linear additive function, the values of the weights will determine whether the system is stable or diverges.
+
+Add material on controllability and observability \cite{klamka2008controllability}.
 
 Consider the system defined by
 %
@@ -170,7 +172,29 @@ We consider the case where $x_j(k)$ are sampled from, say, a Gaussian distributi
 \item If $w > 1$, the system will diverge with the trend of $y_k(n)$ being exponential.  
 \end{enumerate}
 
-We note that the above system is a difference equation that is \emph{linear} (namely, the exponents of $x_j$ are to the first power only). Recurrent neural networks are generally \emph{nonlinear} (the exponents of $x_j$ are to powers greater than one) \cite[p. 6]{strogatz:2000}.
+\subsection{The direct method of Lyanpunov and definitions of aspects of dynamic systems}
+
+We note that system just described is a difference equation that is \emph{linear} (namely, the exponents of $x_j$ are to the first power only). Recurrent neural networks are generally \emph{nonlinear} (the exponents of $x_j$ are to powers greater than one) \cite[p. 6]{strogatz:2000}. To determine whether or not a general dynamic system (linear or nonlinear) is stable we utilize the direct method of Lyapunov \cite[p. 674]{Haykin:2009:NNC:1213811}. We present the method and important definitions here:
+
+\begin{definition}
+  State variables: $x_1(t), \ldots, x_N(t)$. Independent variable: $t$. Order of the system: $N$. State vector (in $N$-dimensions): $\vect{x}(t)$.
+\end{definition}
+
+A nonlinear dynamic system thus consists of the equations
+%
+\begin{equation*}
+  \frac{d}{dt}x_j(t) = F_j \left(x_j(t)\right), \qquad j = 1, 2, \ldots, N
+\end{equation*}
+%
+or
+%
+\begin{equation*}
+  \frac{d}{dt}\vect{x}(t) = \vect{F} \left(\vect{x}(t)\right)
+\end{equation*}
+%
+where $\vect{F}$ is non-linear and vector valued, with each element depending on the corresponding element of $\vect{x}(t)$. We assume that $\vect{F}$ only depends on $t$ through $\vect{x}$, in other words the system is \emph{autonomous} \cite[p. 675]{Haykin:2009:NNC:1213811}). The above equation is called the \emph{state-space} equation (ibid.). We wish to establish the existence and possibly uniqueness of solutions to the state-space equation.
+
+$\vect{F}$ continuous is sufficient for the existence of a solution; for the uniqueness of the solution we require the \emph{Lipschitz condition}:
 
 \section{The Hopfield network as an example of an autoassociative memory model}
 
