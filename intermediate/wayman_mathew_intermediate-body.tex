@@ -127,8 +127,6 @@ Since not all sets of key values are orthogonal, the above system is inadequate 
 
 A \emph{dynamic system} is a system whose state changes with time \cite[p. 675]{Haykin:2009:NNC:1213811}. Above it was noted that feedback is a way of introducing time lags into a dynamic system. Depending on the particulars of the system, feedback can lead a system to stability or cause it to diverge. We consider a simple example \cite[p. 18-21]{Haykin:2009:NNC:1213811} of a dynamic system with feedback. From this example we will see that if the operator mapping input to output is a weight matrix, and outputs are mapped to inputs through a linear additive function, the values of the weights will determine whether the system is stable or diverges.
 
-Add material on controllability and observability \cite{klamka2008controllability}.
-
 Consider the system defined by
 %
 \begin{equation*}
@@ -194,7 +192,65 @@ or
 %
 where $\vect{F}$ is non-linear and vector valued, with each element depending on the corresponding element of $\vect{x}(t)$. We assume that $\vect{F}$ only depends on $t$ through $\vect{x}$, in other words the system is \emph{autonomous} \cite[p. 675]{Haykin:2009:NNC:1213811}). The above equation is called the \emph{state-space} equation (ibid.). We wish to establish the existence and possibly uniqueness of solutions to the state-space equation.
 
-$\vect{F}$ continuous is sufficient for the existence of a solution; for the uniqueness of the solution we require the \emph{Lipschitz condition}:
+$\vect{F}$ continuous is sufficient for the existence of a solution; for the uniqueness of the solution we require the \emph{Lipschitz condition}, which is the following: for $\vect{x}$, $\vect{u}$ in an open set $\mathcal{M}$ in a normal state space, there exists a constant $K$ such that
+
+\begin{equation*}
+\norm{\vect{F}(\vect{x}) - \vect{F}(\vect{u})}_2 \leq K\norm{\vect{x} - \vect{u}}_2
+\end{equation*}
+
+For autonomous systems the Lipschitz condition guarantees both the existence of a solution and its uniqueness. We also have that ``if all partial derivatives $\partial F_i / \partial x_j$ are finite everywhere, then the function $\vect{F}(\vect{x})$ satisfies the Lipschitz condition'' \cite[p. 677]{Haykin:2009:NNC:1213811}.
+
+\subsubsection{Stability around an equilibrium state}
+
+We say a constant vector $\overline{x} \in \mathcal{M}$ is a an \emph{equilibrium state} of the dynamic system if $F(\overline{x}) = \vect{0}$. We examine the linearization of the state-space equation in a neighborhood of $\overline{x}$:
+
+\begin{equation*}
+\vect{x}(t) = \overline{x} + \Delta x(t)
+\end{equation*}
+
+We consider the Taylor expansion of $\vect{F}(\vect{x})$. We define the Jacobian as $J_xy = \frac{\partial y}{\partial x^T}$ where $x$ and $y$ are column vectors.
+
+\begin{align*}
+  \frac{d}{dt}x(t) & = F(x(t)) \\
+  & = F(\overline{x}) + J_x F(\overline{x})(x - \overline{x}) + \cdots \\
+  & = J_x F(\overline{x})(x - \overline{x}) + \cdots \\
+  & \approx J_x F(\overline{x})(x - \overline{x}) = J_x F(\overline{x}) \Delta x
+\end{align*}
+%
+where $\Delta x = x - \overline{x}$.
+
+Since
+
+\begin{equation*}
+  \frac{d}{dt}\Delta x = \frac{d}{dt} x - 0 = \frac{d}{dt} x
+\end{equation*}
+
+We have
+
+\begin{equation*}
+\frac{d}{dt}\Delta x(t) \approx J_x F(\overline{x}) \Delta x
+\end{equation*}
+
+If $J_x F(\overline{x})$ is invertible, we can solve for $\Delta x$ around $\overline{x}$, and the eigenvalues of $J_x F(\overline{x})$ determine the behavior of $\Delta x$ in this neighborhood.
+
+\subsubsection{Stability of equilibrium states}
+
+The above analysis is limited in the sense that it says nothing about whether or not the system ever enters the neighborhood of the equilibrium point in the first place. We would like to be able to say definitively under what circumstances an system will approach an equilibrium state. To do this, we have several definitions, i.e. types, of stability.
+
+\begin{definition}
+  The equilibrium state is said to be \emph{uniformly stable} if, for any positive constant $\epsilon$, there exists another positive constant $\delta = \delta(\epsilon)$ such that the condition
+
+  \begin{equation*}
+    \norm{x(0) - \overline{x}}_2 < \delta
+  \end{equation*}
+  implies
+  \begin{equation*}
+    \norm{x(t) - \overline{x}}_2 < \epsilon
+  \end{equation*}
+  \cite[p. 681]{Haykin:2009:NNC:1213811}
+\end{definition}
+
+In other words, for a uniformly stable equilibrium state, we can guarantee that the state of the system at any time $t$ will be within an arbitrary distance of the equilibrium state provided that the starting state is within a certain distance from the equilibrium state.
 
 \section{The Hopfield network as an example of an autoassociative memory model}
 
