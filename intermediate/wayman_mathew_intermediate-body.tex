@@ -175,7 +175,7 @@ We consider the case where $x_j(k)$ are sampled from, say, a Gaussian distributi
 We note that system just described is a difference equation that is \emph{linear} (namely, the exponents of $x_j$ are to the first power only). Recurrent neural networks are generally \emph{nonlinear} (the exponents of $x_j$ are to powers greater than one) \cite[p. 6]{strogatz:2000}. To determine whether or not a general dynamic system (linear or nonlinear) is stable we utilize the direct method of Lyapunov \cite[p. 674]{Haykin:2009:NNC:1213811}. We present the method and important definitions here:
 
 \begin{definition}
-  State variables: $x_1(t), \ldots, x_N(t)$. Independent variable: $t$. Order of the system: $N$. State vector (in $N$-dimensions): $\vect{x}(t)$.
+  State variables: $x_1(t), \ldots, x_N(t)$. Independent variable: $t$. Order of the system: $N$. State vector (a column vector $N$-dimensions): $x(t)$.
 \end{definition}
 
 A nonlinear dynamic system thus consists of the equations
@@ -187,28 +187,28 @@ A nonlinear dynamic system thus consists of the equations
 or
 %
 \begin{equation*}
-  \frac{d}{dt}\vect{x}(t) = \vect{F} \left(\vect{x}(t)\right)
+  \frac{d}{dt}x(t) = F \left(x(t)\right)
 \end{equation*}
 %
-where $\vect{F}$ is non-linear and vector valued, with each element depending on the corresponding element of $\vect{x}(t)$. We assume that $\vect{F}$ only depends on $t$ through $\vect{x}$, in other words the system is \emph{autonomous} \cite[p. 675]{Haykin:2009:NNC:1213811}). The above equation is called the \emph{state-space} equation (ibid.). We wish to establish the existence and possibly uniqueness of solutions to the state-space equation.
+where $F$ is non-linear and vector valued, with each element depending on the corresponding element of $x(t)$. We assume that $F$ only depends on $t$ through $x$, in other words the system is \emph{autonomous} \cite[p. 675]{Haykin:2009:NNC:1213811}). The above equation is called the \emph{state-space} equation (ibid.). We wish to establish the existence and possibly uniqueness of solutions to the state-space equation.
 
-$\vect{F}$ continuous is sufficient for the existence of a solution; for the uniqueness of the solution we require the \emph{Lipschitz condition}, which is the following: for $\vect{x}$, $\vect{u}$ in an open set $\mathcal{M}$ in a normal state space, there exists a constant $K$ such that
+$F$ continuous is sufficient for the existence of a solution; for the uniqueness of the solution we require the \emph{Lipschitz condition}, which is the following: for column vectors $x$, $u$ in an open set $\mathcal{M}$ in a normal state space, there exists a constant $K$ such that
 
 \begin{equation*}
-\norm{\vect{F}(\vect{x}) - \vect{F}(\vect{u})}_2 \leq K\norm{\vect{x} - \vect{u}}_2
+\norm{F(x) - F(u)}_2 \leq K\norm{x - u}_2
 \end{equation*}
 
 For autonomous systems the Lipschitz condition guarantees both the existence of a solution and its uniqueness. We also have that ``if all partial derivatives $\partial F_i / \partial x_j$ are finite everywhere, then the function $\vect{F}(\vect{x})$ satisfies the Lipschitz condition'' \cite[p. 677]{Haykin:2009:NNC:1213811}.
 
 \subsubsection{Stability around an equilibrium state}
 
-We say a constant vector $\overline{x} \in \mathcal{M}$ is a an \emph{equilibrium state} of the dynamic system if $F(\overline{x}) = \vect{0}$. We examine the linearization of the state-space equation in a neighborhood of $\overline{x}$:
+We say a constant vector $\overline{x} \in \mathcal{M}$ is a an \emph{equilibrium state} of the dynamic system if $F(\overline{x}) = 0$ (where of course 0 is a column vector). We examine the linearization of the state-space equation in a neighborhood of $\overline{x}$:
 
 \begin{equation*}
-\vect{x}(t) = \overline{x} + \Delta x(t)
+x(t) = \overline{x} + \Delta x(t)
 \end{equation*}
 
-We consider the Taylor expansion of $\vect{F}(\vect{x})$. We define the Jacobian as $J_xy = \frac{\partial y}{\partial x^T}$ where $x$ and $y$ are column vectors.
+We consider the Taylor expansion of $F(x)$. We define the Jacobian as $J_xy = \frac{\partial y}{\partial x^T}$ where $x$ and $y$ are column vectors.
 
 \begin{align*}
   \frac{d}{dt}x(t) & = F(x(t)) \\
@@ -233,17 +233,16 @@ We have
 
 If $J_x F(\overline{x})$ is invertible, we can solve for $\Delta x$ around $\overline{x}$, and the eigenvalues of $J_x F(\overline{x})$ determine the behavior of $\Delta x$ in this neighborhood.
 
-\subsubsection{Stability of equilibrium states}
+\subsubsection{Types of stability of equilibrium states}
 
 The above analysis is limited in the sense that it says nothing about whether or not the system ever enters the neighborhood of the equilibrium point in the first place. We would like to be able to say definitively under what circumstances an system will approach an equilibrium state. To do this, we have several definitions, i.e. types, of stability.
 
 \begin{definition}
   The equilibrium state is said to be \emph{uniformly stable} if, for any positive constant $\epsilon$, there exists another positive constant $\delta = \delta(\epsilon)$ such that the condition
-
   \begin{equation*}
     \norm{x(0) - \overline{x}}_2 < \delta
   \end{equation*}
-  implies
+  implies 
   \begin{equation*}
     \norm{x(t) - \overline{x}}_2 < \epsilon
   \end{equation*}
@@ -251,6 +250,36 @@ The above analysis is limited in the sense that it says nothing about whether or
 \end{definition}
 
 In other words, for a uniformly stable equilibrium state, we can guarantee that the state of the system at any time $t$ will be within an arbitrary distance of the equilibrium state provided that the starting state is within a certain distance from the equilibrium state.
+
+\begin{definition}
+  The equilibrium state is said to be \emph{convergent} if there exists a positive constant $\delta$ such that the condition
+  \begin{equation*}
+    \norm{x(0) - \overline{x}}_2 < \delta
+  \end{equation*}
+  implies 
+  \begin{equation*}
+    \lim_{t \to \infty} x(t) = \overline{x}
+  \end{equation*}
+  \cite[p. 681]{Haykin:2009:NNC:1213811}
+\end{definition}
+
+In other words, as long as the initial state is within a certain distance from the equilibrium state, the state of the system will eventually approach the equilibrium state \cite[p. 681]{Haykin:2009:NNC:1213811}.
+
+\begin{definition}
+  The equilibrium state is \emph{asymptotically stable} if it is both uniformly stable and convergent.
+  \cite{wilson2010}
+\end{definition}
+
+\begin{definition}
+  The equilibrium state is \emph{globally asymptotically stable} if it is both uniformly stable and all trajectories of the system converge to $\overline{x}$ as $t \to \infty$.
+  \cite{wilson2010}
+\end{definition}
+
+Global asymptotic stability implies the system has only a single equilibrium state \cite[p. 681]{Haykin:2009:NNC:1213811}.
+
+\subsubsection{Theorems regarding stability}
+
+Now we present theorems which give conditions under which stability of various types is achieved. These theorems are useful because they save us from having to solve for the solutions of the state-space equations. Rather, the theorems say that if we can find a certain function of the state variable that satisfies certain properties, then the equilibrium state is stable in a certain way.
 
 \section{The Hopfield network as an example of an autoassociative memory model}
 
