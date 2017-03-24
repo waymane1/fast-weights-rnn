@@ -1,9 +1,8 @@
-# 17spr_wayman_mathew
+# Implementation [Deprecated]
 
-2017 Spring CSE 847 class project repository for Eric Wayman and Adi Mathew
+Since we initially planned to implement the paper using MATLAB, two developments have led us to switch gears and move to the new ['code'](https://github.com/msu-ml/17spr_wayman_mathew/tree/master/code) folder:
 
-## Proposal ##
+- Pythons handling of training and testing data saves a lot of time, given that we are synthesizing strings for one segment.
+- We were unaware that we could use tools of our choice for this project.
 
-We have decided to focus on the fundamentals and theory behind the work done by Ba, et. al. in their paper [**Using Fast Weights to attend to the recent past**](https://papers.nips.cc/paper/6057-using-fast-weights-to-attend-to-the-recent-past.pdf), which was published at [NIPS 2016](https://papers.nips.cc/paper/6057-using-fast-weights-to-attend-to-the-recent-past).
-
-Our current goal is to study the methods and replicate at least one comparitive test against other methods.
+Please look in the ['code'](https://github.com/msu-ml/17spr_wayman_mathew/tree/master/code) folder for our implementation of this paper and other related networks.
