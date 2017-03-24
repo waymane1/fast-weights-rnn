@@ -190,17 +190,19 @@ or
   \frac{d}{dt}x(t) = F \left(x(t)\right)
 \end{equation*}
 %
-where $F$ is non-linear and vector valued, with each element depending on the corresponding element of $x(t)$. We assume that $F$ only depends on $t$ through $x$, in other words the system is \emph{autonomous} \cite[p. 675]{Haykin:2009:NNC:1213811}). The above equation is called the \emph{state-space} equation (ibid.). We wish to establish the existence and possibly uniqueness of solutions to the state-space equation.
+where $F$ is non-linear and vector valued, with each element depending on the corresponding element of $x(t)$. If $F$ only depends on $t$ through $x$, the system is \emph{autonomous}, otherwise it is \emph{nonautonomous} \cite[p. 675]{Haykin:2009:NNC:1213811}). The above equation is called the \emph{state-space} equation (ibid.). We wish to establish the existence and possibly uniqueness of solutions to the state-space equation. This is easier to do with autonomous than nonautonomous systems \cite[p. 180]{DBLP:journals/ai/Beer95}.
 
-$F$ continuous is sufficient for the existence of a solution; for the uniqueness of the solution we require the \emph{Lipschitz condition}, which is the following: for column vectors $x$, $u$ in an open set $\mathcal{M}$ in a normal state space, there exists a constant $K$ such that
+Let be $F$ autonomous. Then $F$ continuous is sufficient for the existence of a solution (note that this is not true for nonautonomous systems). For the uniqueness of the solution we require the \emph{Lipschitz condition}, which is the following: for column vectors $x$, $u$ in an open set $\mathcal{M}$ in a normal state space, there exists a constant $K$ such that
 
 \begin{equation*}
 \norm{F(x) - F(u)}_2 \leq K\norm{x - u}_2
 \end{equation*}
 
-For autonomous systems the Lipschitz condition guarantees both the existence of a solution and its uniqueness. We also have that ``if all partial derivatives $\partial F_i / \partial x_j$ are finite everywhere, then the function $\vect{F}(\vect{x})$ satisfies the Lipschitz condition'' \cite[p. 677]{Haykin:2009:NNC:1213811}.
+For autonomous systems the Lipschitz condition guarantees both the existence of a solution and its uniqueness. We also have that ``if all partial derivatives $\partial F_i / \partial x_j$ are finite everywhere, then the function $F(x)$ satisfies the Lipschitz condition'' \cite[p. 677]{Haykin:2009:NNC:1213811}. Once again we note that the above results do not hold generally for nonautonomous systems: similar results hold only in certain neighborhoods of equilibrium states \cite[Definition A.2, p. 194]{rasmussen2006attractivity}.
 
 \subsubsection{Stability around an equilibrium state}
+
+The results in this subsection hold only for autonomous systems.
 
 We say a constant vector $\overline{x} \in \mathcal{M}$ is a an \emph{equilibrium state} of the dynamic system if $F(\overline{x}) = 0$ (where of course 0 is a column vector). We examine the linearization of the state-space equation in a neighborhood of $\overline{x}$:
 
@@ -233,7 +235,11 @@ We have
 
 If $J_x F(\overline{x})$ is invertible, we can solve for $\Delta x$ around $\overline{x}$, and the eigenvalues of $J_x F(\overline{x})$ determine the behavior of $\Delta x$ in this neighborhood.
 
+Note that the reason the above linearization is not possible for nonautonomous systems is that if $F = F(x(t), t)$, taking the Jacobian with respect to only $x$ would ignore the direct effect of $t$ on the system (i.e. the effect of $t$ on $F$ that does not go through $x$).
+
 \subsubsection{Types of stability of equilibrium states}
+
+Again, the results in this subsection hold only for autonomous systems.
 
 The above analysis is limited in the sense that it says nothing about whether or not the system ever enters the neighborhood of the equilibrium point in the first place. We would like to be able to say definitively under what circumstances an system will approach an equilibrium state. To do this, we have several definitions, i.e. types, of stability.
 
@@ -279,7 +285,31 @@ Global asymptotic stability implies the system has only a single equilibrium sta
 
 \subsubsection{Theorems regarding stability}
 
-Now we present theorems which give conditions under which stability of various types is achieved. These theorems are useful because they save us from having to solve for the solutions of the state-space equations. Rather, the theorems say that if we can find a certain function of the state variable that satisfies certain properties, then the equilibrium state is stable in a certain way.
+Now we present theorems, applicable only to autonomous systems, which give conditions under which stability of various types is achieved. These theorems are useful because they save us from having to solve for the solutions of the state-space equations. Rather, the theorems say that if we can find a certain function of the state variable that satisfies certain properties, then the equilibrium state is stable in a certain way. The theorems are part of the \emph{direct method of Lyapunov} \cite[p. 682]{Haykin:2009:NNC:1213811}, and the function $V(x)$ in the following theorems is called a Lyapunov function.
+
+\begin{theorem}
+The equilibrium state $\overline{x}$ is (Lyapunov) stable if, in a small neighborhood of $\overline{x}$ there exists a positive-definite function $V(x)$ such that its derivative with respect to time is negative semidefinite in that region.
+\end{theorem}
+
+\begin{theorem}
+The equilibrium state $\overline{x}$ is asymptotically stable if, in a small neighborhood of $\overline{x}$, there exists a positive-definite function $V(x)$ such that its derivative with respect to time is negative definite in that region \cite[p. 682]{Haykin:2009:NNC:1213811}.
+\end{theorem}
+
+In the Haykin book, the first theorem omits the word ``Lyapunov'' and does not define ``stable'': he means ``Lyapunov stable.'' Note that in the definitions given, the initial time point is always taken to be $t_0 = 0$ so the distinction between Lyapunov stable and uniform stable is not made clear, and in any case, Lyapunov stability was not even defined. For the system to be Lyapunov stable, we have $\delta(\epsilon, t)$ where $\delta$ depends on $t_0$, whereas for the system to be uniform stable, the choice of $\delta$ is independent of $t_0$ \cite{byao}.
+
+Letting $\mathcal{U}$ be the small neighborhood of $\overline{x}$, if $V(x)$ is a Lyapunov function, the equilibrium state $\overline{x}$ is Lyapunov stable if $\frac{d}{dt} V(x) \leq 0$ for $x \in \mathcal{U} - \overline{x}$ and is asymptotically stable if $\frac{d}{dt}V(x) < 0$ for $x \in \mathcal{U} - \overline{x}$. Since $\frac{d}{dt} V(x) \leq 0$ in a neighborhood, if we define a surface (called a \emph{Lyapunov surface}) $V(x) = c, c > 0$, once a trajectory crosses the surface, the trajectory stays within the set of points defined by $\{x \in \mathbb{R}^N : V(x) \leq c\}$ (note the mistake in Haykin here). If $\frac{d}{dt}V(x) < 0$, observe the trajectory continues to move ecloser and closer to $\overline{x}$, and by the second theorem, it approaches $\overline{x}$ as $t \to \infty$. (Note there is another mistake in Haykin: the book says ``we cannot be sure that the trajectory will actually converge onto $\overline{x}$ as $t \to \infty$'' but this is for the case of $\frac{d}{dt} V(x) \leq 0$, not strict inequality. For confirmation see, for example, \cite[p. 18-19]{christofides2005control}.)
+
+\subsubsection{Attractors}
+
+Thee above exposition regarding Lyapunov surfaces is useful for intuitive understanding, there are several issues (leaving alone the fact that we are still only speaking of autonomous functions). One issue is we may not even have a Lyapunov function for our system. Since the existence of a Lyapunov function is a sufficient but not necessary condition for stability \cite[p. 683]{Haykin:2009:NNC:1213811}, it seems sensible to have a definition of a region of stability without explicit reference to Lyapunov functions. We define the \emph{basin of attraction} of an equilibrium state in the following manner:
+
+\begin{definition}
+The \emph{basin of attraction} of an equilibrium state $\overline{x}$ is the set of all $x$ such that $x(t) \to \overline{x}$ when $t \to \infty$ \cite{ocostin}.
+\end{definition}
+
+Note that this definition can be applied to nonautonomous systems as well. We also note that basins of attraction are usually defined with respect to \emph{attractors} of which there are four types, one of which is the equilibrium state (called an \emph{equilibrium point attractor} in this context \cite[p. 179]{DBLP:journals/ai/Beer95}). We restrict our consideration to equilibrium point attractors for the time being, which allows us to use the above more restricted definition.
+
+We also observe an explicit connection between the Lyapunov surface and this more general concept of basin of attraction: 
 
 \section{The Hopfield network as an example of an autoassociative memory model}
 
