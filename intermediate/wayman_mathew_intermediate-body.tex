@@ -47,39 +47,39 @@ There are two main types of associative memory, \emph{autoassociative} and \emph
 
 \subsection{A simple example of an associative memory model}
 
-Consider an associative memory which learns the single key pattern $\vect{f}$ and value $\vect{g}$ where both are vectors (this example is from \cite[p. 163-165]{Anderson95}). We let the system be the matrix
+Consider an associative memory which learns the single key pattern $f$ and value $g$ where both are column vectors (this example is from \cite[p. 163-165]{Anderson95}). We let the system be the matrix
 
 \begin{equation*}
-\vect{A} = \eta \vect{g}\vect{f}^T
+A = \eta g f^T
 \end{equation*}
 
 The system performs perfectly:
-%
-\begin{equation*}
-\vect{g}^\prime = \vect{A}\vect{f} = \eta\vect{g}\vect{f}^T\vect{f} \propto \vect{g}
-\end{equation*}
-%
-since the $\vect{g}^\prime$ that is recalled is proportional to the value $\vect{g}$ associated with the input $\vect{f}$.
-
-Now consider a set of key patterns $\vect{f}_i$ and associated values $\vect{g}_i$ where all $\vect{f}_i$ are orthogonal (we write $\vect{f}_i \rightarrow \vect{g}_i$ to denote the associations). Letting
 
 \begin{equation*}
-\vect{A}_i = \vect{g}_i \vect{f}_i^T, \qquad \vect{A} = \sum_{i} \vect{A}_i
+g^\prime = Af = \eta g f^T f \propto g
 \end{equation*}
+%
+since the $g^\prime$ that is recalled is proportional to the value $g$ associated with the input $f$.
 
-We see that again $\vect{A}$ performs recall perfectly since for all $j$,
+Now consider a set of key patterns $f_i$ and associated values $g_i$ where all $f_i$ are orthogonal (we write $f_i \rightarrow g_i$ to denote the associations). Letting
+
+\begin{equation*}
+A_i = g_i f_i^T, \qquad A = \sum_{i} A_i
+\end{equation*}
+%
+we see that again $A$ performs recall perfectly since for all $j$,
 
 \begin{align*}
-  \vect{A}\vect{f}_j & = \sum_{i}\vect{A}_i \vect{f}_j = \sum_{k \neq j} \vect{A}_k \vect{f}_j + \vect{A}_j\vect{f}_j \\
-  & = \sum_{k \neq j} \vect{g}_k \vect{f}_k^T \vect{f}_j + \vect{g}_j = \vect{g}_j
+  A f_j & = \sum_{i}A_i f_j = \sum_{k \neq j} A_k f_j + A_j f_j \\
+  & = \sum_{k \neq j} g_k f_k^T f_j + \eta g_j \propto g_j
 \end{align*}
 
-The above example suggests that outer products can be useful in constructing associative memory models. Using outer products to create memory storage is referred to ``the generalization of Hebb's postulate of learning'' \cite[p. 698]{Haykin:2009:NNC:1213811} since weight updates in Hebbian learning are calculated with outer products, as in the following example for a one-layer network \cite[p. 39-40]{fyfe2000}. For output $\vect{y} \in \mathbb{R}^m$ and input $\vect{x} \in \mathbb{R}^n$, if
+The above example suggests that outer products can be useful in constructing associative memory models. Using outer products to create memory storage is referred to ``the generalization of Hebb's postulate of learning'' \cite[p. 698]{Haykin:2009:NNC:1213811} since weight updates in Hebbian learning are calculated with outer products, as in the following example for a one-layer network \cite[p. 39-40]{fyfe2000}. For output $y \in \mathbb{R}^m$ and input $x \in \mathbb{R}^n$, if
 
 \begin{equation*}
   y_i = \sum_{j} w_{ij} x_j, \qquad \Delta w_{ij} = \alpha x_j y_i
 \end{equation*}
-
+%
 then
 
 \begin{equation*}
@@ -91,13 +91,13 @@ Letting $\alpha = \Delta t$,
 \begin{equation*}
   \frac{\Delta w_{ij}}{\Delta t} = \sum_k w_{ik}x_j x_k
 \end{equation*}
-
+%
 so as $\Delta t \rightarrow 0$,
 
 \begin{equation*}
-\frac{d}{dt}\vect{W}(t) = \vect{C}\vect{W}(t)
+\frac{d}{dt}W(t) = C W(t)
 \end{equation*}
-
+%
 or, writing out the matrices fully,
 
 \begin{equation*}
@@ -172,10 +172,10 @@ We consider the case where $x_j(k)$ are sampled from, say, a Gaussian distributi
 
 \subsection{The direct method of Lyanpunov and definitions of aspects of dynamic systems}
 
-We note that system just described is a difference equation that is \emph{linear} (namely, the exponents of $x_j$ are to the first power only). Recurrent neural networks are generally \emph{nonlinear} (the exponents of $x_j$ are to powers greater than one) \cite[p. 6]{strogatz:2000}. To determine whether or not a general dynamic system (linear or nonlinear) is stable we utilize the direct method of Lyapunov \cite[p. 674]{Haykin:2009:NNC:1213811}. We present the method and important definitions here:
+We note that system just described is a difference equation that is \emph{linear} (namely, the exponents of $x_j$ are to the first power only). Recurrent neural networks are generally \emph{nonlinear} (the exponents of $x_j$ are to powers greater than one \cite[p. 6]{strogatz:2000} or the $x_j$ are not in polynomial form). We present some important definitions here regarding dynamic systems:
 
 \begin{definition}
-  State variables: $x_1(t), \ldots, x_N(t)$. Independent variable: $t$. Order of the system: $N$. State vector (a column vector $N$-dimensions): $x(t)$.
+  State variables: $x_1(t), \ldots, x_N(t)$. Independent variable: $t$. Order of the system: $N$. State vector (an $N$-dimensional column vector): $x(t)$.
 \end{definition}
 
 A nonlinear dynamic system thus consists of the equations
@@ -204,7 +204,7 @@ For autonomous systems the Lipschitz condition guarantees both the existence of 
 
 The results in this subsection hold only for autonomous systems.
 
-We say a constant vector $\overline{x} \in \mathcal{M}$ is a an \emph{equilibrium state} of the dynamic system if $F(\overline{x}) = 0$ (where of course 0 is a column vector). We examine the linearization of the state-space equation in a neighborhood of $\overline{x}$:
+We say a constant vector $\overline{x} \in \mathcal{M}$ is a an \emph{equilibrium state} of the dynamic system if $F(\overline{x}) = 0$ (where of course 0 is a column vector). We examine the linearization of the state-space equation in a neighborhood of $\overline{x}$ (letting $\Delta x = x - \overline{x}$):
 
 \begin{equation*}
 x(t) = \overline{x} + \Delta x(t)
@@ -219,15 +219,14 @@ We consider the Taylor expansion of $F(x)$. We define the Jacobian as $J_xy = \f
   & \approx J_x F(\overline{x})(x - \overline{x}) = J_x F(\overline{x}) \Delta x
 \end{align*}
 %
-where $\Delta x = x - \overline{x}$.
 
 Since
 
 \begin{equation*}
   \frac{d}{dt}\Delta x = \frac{d}{dt} x - 0 = \frac{d}{dt} x
 \end{equation*}
-
-We have
+%
+we have
 
 \begin{equation*}
 \frac{d}{dt}\Delta x(t) \approx J_x F(\overline{x}) \Delta x
@@ -295,13 +294,13 @@ The equilibrium state $\overline{x}$ is (Lyapunov) stable if, in a small neighbo
 The equilibrium state $\overline{x}$ is asymptotically stable if, in a small neighborhood of $\overline{x}$, there exists a positive-definite function $V(x)$ such that its derivative with respect to time is negative definite in that region \cite[p. 682]{Haykin:2009:NNC:1213811}.
 \end{theorem}
 
-In the Haykin book, the first theorem omits the word ``Lyapunov'' and does not define ``stable'': he means ``Lyapunov stable.'' Note that in the definitions given, the initial time point is always taken to be $t_0 = 0$ so the distinction between Lyapunov stable and uniform stable is not made clear, and in any case, Lyapunov stability was not even defined. For the system to be Lyapunov stable, we have $\delta(\epsilon, t)$ where $\delta$ depends on $t_0$, whereas for the system to be uniform stable, the choice of $\delta$ is independent of $t_0$ \cite{byao}.
+In the Haykin book, the first theorem omits the word ``Lyapunov'' and does not define ``stable'': he means ``Lyapunov stable.'' Note that in the definitions given, the initial time point is always taken to be $t_0 = 0$ so the distinction between Lyapunov stable and uniform stable is not made clear, and in any case, Lyapunov stability was not even defined. For the system to be Lyapunov stable, we have $\delta(\epsilon, t_0)$ where $\delta$ depends on $t_0$, whereas for the system to be uniform stable, the choice of $\delta$ is independent of $t_0$ \cite{byao}.
 
-Letting $\mathcal{U}$ be the small neighborhood of $\overline{x}$, if $V(x)$ is a Lyapunov function, the equilibrium state $\overline{x}$ is Lyapunov stable if $\frac{d}{dt} V(x) \leq 0$ for $x \in \mathcal{U} - \overline{x}$ and is asymptotically stable if $\frac{d}{dt}V(x) < 0$ for $x \in \mathcal{U} - \overline{x}$. Since $\frac{d}{dt} V(x) \leq 0$ in a neighborhood, if we define a surface (called a \emph{Lyapunov surface}) $V(x) = c, c > 0$, once a trajectory crosses the surface, the trajectory stays within the set of points defined by $\{x \in \mathbb{R}^N : V(x) \leq c\}$ (note the mistake in Haykin here). If $\frac{d}{dt}V(x) < 0$, observe the trajectory continues to move ecloser and closer to $\overline{x}$, and by the second theorem, it approaches $\overline{x}$ as $t \to \infty$. (Note there is another mistake in Haykin: the book says ``we cannot be sure that the trajectory will actually converge onto $\overline{x}$ as $t \to \infty$'' but this is for the case of $\frac{d}{dt} V(x) \leq 0$, not strict inequality. For confirmation see, for example, \cite[p. 18-19]{christofides2005control}.)
+Letting $\mathcal{U}$ be the small neighborhood of $\overline{x}$, if $V(x)$ is a Lyapunov function, the equilibrium state $\overline{x}$ is Lyapunov stable if $\frac{d}{dt} V(x) \leq 0$ for $x \in \mathcal{U} - \overline{x}$ and is asymptotically stable if $\frac{d}{dt}V(x) < 0$ for $x \in \mathcal{U} - \overline{x}$. Since $\frac{d}{dt} V(x) \leq 0$ in a neighborhood, if we define a surface (called a \emph{Lyapunov surface}) $V(x) = c, c > 0$, once a trajectory crosses the surface, the trajectory stays within the set of points defined by $\{x \in \mathbb{R}^N : V(x) \leq c\}$ (note the mistake in Haykin here). If $\frac{d}{dt}V(x) < 0$, observe the trajectory continues to move closer and closer to $\overline{x}$, and by the second theorem, it approaches $\overline{x}$ as $t \to \infty$. (Note there is another mistake in Haykin: the book says ``we cannot be sure that the trajectory will actually converge onto $\overline{x}$ as $t \to \infty$'' but this is for the case of $\frac{d}{dt} V(x) \leq 0$, not strict inequality. For confirmation see, for example, \citealt[p. 18-19]{christofides2005control}.)
 
 \subsubsection{Attractors}
 
-Thee above exposition regarding Lyapunov surfaces is useful for intuitive understanding, there are several issues (leaving alone the fact that we are still only speaking of autonomous functions). One issue is we may not even have a Lyapunov function for our system. Since the existence of a Lyapunov function is a sufficient but not necessary condition for stability \cite[p. 683]{Haykin:2009:NNC:1213811}, it seems sensible to have a definition of a region of stability without explicit reference to Lyapunov functions. We define the \emph{basin of attraction} of an equilibrium state in the following manner:
+Although the above exposition regarding Lyapunov surfaces is useful for intuitive understanding, there are several issues (leaving alone the fact that we are still only speaking of autonomous functions). One issue is we may not even have a Lyapunov function for our system. Since the existence of a Lyapunov function is a sufficient but not necessary condition for stability \cite[p. 683]{Haykin:2009:NNC:1213811}, it seems sensible to have a definition of a region of stability without explicit reference to Lyapunov functions. We define the \emph{basin of attraction} of an equilibrium state in the following manner:
 
 \begin{definition}
 The \emph{basin of attraction} of an equilibrium state $\overline{x}$ is the set of all $x$ such that $x(t) \to \overline{x}$ when $t \to \infty$ \cite{ocostin}.
@@ -309,7 +308,7 @@ The \emph{basin of attraction} of an equilibrium state $\overline{x}$ is the set
 
 Note that this definition can be applied to nonautonomous systems as well. We also note that basins of attraction are usually defined with respect to \emph{attractors} of which there are four types, one of which is the equilibrium state (called an \emph{equilibrium point attractor} in this context \cite[p. 179]{DBLP:journals/ai/Beer95}). We restrict our consideration to equilibrium point attractors for the time being, which allows us to use the above more restricted definition.
 
-We also observe an explicit connection between the Lyapunov surface and this more general concept of basin of attraction: 
+We also observe an explicit connection between the Lyapunov surface and this more general concept of basin of attraction. For the small neighborhood $\mathcal{U}$ of $\overline{x}$, where $V(x)$ is negative definite, it can be shown that the sets $\mathcal{U}_c = \{x \in \mathcal{U} : V(x) \leq c\}$ are in the basin of attraction of $\overline{x}$ \cite{anovozhilov}.
 
 \section{The Hopfield network as an example of an autoassociative memory model}
 
