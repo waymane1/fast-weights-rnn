@@ -123,7 +123,7 @@ Note that the simple example of autoassociative memory would correspond to the w
 
 Since not all sets of key values are orthogonal, the above system is inadequate for most cases. Before moving to other models we provide an overview of stability issues necessary for the design and evaluation of recurrent networks.
 
-\section{Stability, controllability and observability in dynamic systems}
+\section{Stability of dynamic systems}
 
 A \emph{dynamic system} is a system whose state changes with time \cite[p. 675]{Haykin:2009:NNC:1213811}. Above it was noted that feedback is a way of introducing time lags into a dynamic system. Depending on the particulars of the system, feedback can lead a system to stability or cause it to diverge. We consider a simple example \cite[p. 18-21]{Haykin:2009:NNC:1213811} of a dynamic system with feedback. From this example we will see that if the operator mapping input to output is a weight matrix, and outputs are mapped to inputs through a linear additive function, the values of the weights will determine whether the system is stable or diverges.
 
@@ -170,7 +170,7 @@ We consider the case where $x_j(k)$ are sampled from, say, a Gaussian distributi
 \item If $w > 1$, the system will diverge with the trend of $y_k(n)$ being exponential.  
 \end{enumerate}
 
-\subsection{The direct method of Lyanpunov and definitions of aspects of dynamic systems}
+\subsection{Stability for autonomous dynamic systems}
 
 We note that system just described is a difference equation that is \emph{linear} (namely, the exponents of $x_j$ are to the first power only). Recurrent neural networks are generally \emph{nonlinear} (the exponents of $x_j$ are to powers greater than one \cite[p. 6]{strogatz:2000} or the $x_j$ are not in polynomial form). We present some important definitions here regarding dynamic systems:
 
@@ -298,7 +298,7 @@ In the Haykin book, the first theorem omits the word ``Lyapunov'' and does not d
 
 Letting $\mathcal{U}$ be the small neighborhood of $\overline{x}$, if $V(x)$ is a Lyapunov function, the equilibrium state $\overline{x}$ is Lyapunov stable if $\frac{d}{dt} V(x) \leq 0$ for $x \in \mathcal{U} - \overline{x}$ and is asymptotically stable if $\frac{d}{dt}V(x) < 0$ for $x \in \mathcal{U} - \overline{x}$. Since $\frac{d}{dt} V(x) \leq 0$ in a neighborhood, if we define a surface (called a \emph{Lyapunov surface}) $V(x) = c, c > 0$, once a trajectory crosses the surface, the trajectory stays within the set of points defined by $\{x \in \mathbb{R}^N : V(x) \leq c\}$ (note the mistake in Haykin here). If $\frac{d}{dt}V(x) < 0$, observe the trajectory continues to move closer and closer to $\overline{x}$, and by the second theorem, it approaches $\overline{x}$ as $t \to \infty$. (Note there is another mistake in Haykin: the book says ``we cannot be sure that the trajectory will actually converge onto $\overline{x}$ as $t \to \infty$'' but this is for the case of $\frac{d}{dt} V(x) \leq 0$, not strict inequality. For confirmation see, for example, \citealt[p. 18-19]{christofides2005control}.)
 
-\subsubsection{Attractors}
+\subsection{Attractors}
 
 Although the above exposition regarding Lyapunov surfaces is useful for intuitive understanding, there are several issues (leaving alone the fact that we are still only speaking of autonomous functions). One issue is we may not even have a Lyapunov function for our system. Since the existence of a Lyapunov function is a sufficient but not necessary condition for stability \cite[p. 683]{Haykin:2009:NNC:1213811}, it seems sensible to have a definition of a region of stability without explicit reference to Lyapunov functions. We define the \emph{basin of attraction} of an equilibrium state in the following manner:
 
@@ -309,6 +309,49 @@ The \emph{basin of attraction} of an equilibrium state $\overline{x}$ is the set
 Note that this definition can be applied to nonautonomous systems as well. We also note that basins of attraction are usually defined with respect to \emph{attractors} of which there are four types, one of which is the equilibrium state (called an \emph{equilibrium point attractor} in this context \cite[p. 179]{DBLP:journals/ai/Beer95}). We restrict our consideration to equilibrium point attractors for the time being, which allows us to use the above more restricted definition.
 
 We also observe an explicit connection between the Lyapunov surface and this more general concept of basin of attraction. For the small neighborhood $\mathcal{U}$ of $\overline{x}$, where $V(x)$ is negative definite, it can be shown that the sets $\mathcal{U}_c = \{x \in \mathcal{U} : V(x) \leq c\}$ are in the basin of attraction of $\overline{x}$ \cite{anovozhilov}.
+
+\subsection{Information persistence}
+
+A standard RNN has the mathematical form \cite[p. 381]{Goodfellow-et-al-2016}
+
+\begin{align*}
+  a(t) & = b + W h(t-1) + U x(t) \\
+  h(t) & = \tanh(a(t)) \\
+  o(t) & = c + V(h) \\
+  \widehat{y}(t) & = \mbox{softmax}(o(t))
+\end{align*}
+
+When discussing stability for such a network, we are referring to the stability of the hidden unit $h$. For a sequence task, the hidden unit at each point in time should predict the desired output, and should incorporate information from as many previous time steps as will affect the desired output.
+
+We consider
+
+\begin{equation*}
+h(t) = \tanh(a(t)) = \tanh(b + W h(t-1)) = M h(t-1)
+\end{equation*}
+%
+where $M$ is the map taking $h(t - 1)$ to $h(t)$ for the system where $Ux(t)$ is not included (so the system is autonomous). If $h(0)$ begins within a basin of attraction then by our above analysis it will approach an attractor over time. In practice, if $h(0)$ and $W$ are initialized properly, we may be able to guarantee $h$ will begin in the correct basin of attraction (assuming the attractors even exist in the first place).
+
+We summarize the argument of \citealt{DBLP:journals/tnn/BengioSF94} which is restated in \citealt{Hochreiter2001}. Assuming we are in the desired basin of attraction of a hyperbolic attractor (either an equilibrium point attractor or a periodic (limit cycle) attractor), if we consider only the autonomous system, the system will converge to the attractor. If the system is made nonautonomous by the inclusion of the additive term $Ux(t)$, as long as $Ux(t)$ is in a subset of the \emph{reduced attracting set} of the attractor, the system will still converge to the attractor \cite[p. 160]{DBLP:journals/tnn/BengioSF94}. However, if this condition is violated, the state of the hidden units may drift away from the attractor even if the state is still in the basin of attraction. \citeauthor*{DBLP:journals/tnn/BengioSF94} show that the reduced attracting set is defined as $\norm{J_x M} < 1$, i.e. the matrix norm of the Jacobian matrix of the mapping is less than 1 (for brevity, we ignore their discussion of uncertainty here). In short, when $Ux(t)$ is not in the reduced attracting set, the effect of such inputs $x(t)$ may be to push the state into a different basin of attraction than that of our desired hidden state. This may happen when, for example, the data is ``noisy,'' so that not all the information of $x(t)$ leads the model to converge to the desired attractor.
+
+The authors draw our attention to a dilemma: in the region where $\norm{J_x M} < 1$, the gradient of the current state $h(t)$ with respect to $h(\tau), \tau \ll t$ decays quite rapidly \cite{Hochreiter2001}. This is an issue because gradient-based training methods, such as \emph{back-propagation through time} or BPTT, the update to the weight matrix $W$ is adjusted in proportion to these gradients. So, ironically, when the system is in the desired reduced attracting set, we cannot properly train the network, and when the system is not in that set, the weight matrix may change in undesired ways. Formally \cite{Hochreiter2001},
+
+\begin{equation*}
+  \frac{\partial E(t)}{\partial W} = \sum_{\tau \leq t} \frac{\partial E(t)}{\partial y(\tau)} \frac{\partial y(\tau)}{\partial W} = \sum_{\tau \leq t} \frac{\partial E(t)}{\partial y(t)} \frac{\partial y(t)}{\partial y(\tau)} \frac{\partial y(\tau)}{\partial W}
+\end{equation*}
+%
+where for $s < t$,
+
+\begin{equation*}
+\frac{\partial y(t)}{\partial y(s)} = \frac{\partial y(t)}{\partial y(t-1)} \frac{\partial y(t-1)}{\partial y(t-2)} \cdots \frac{\partial y(s+1)}{\partial y(s)}
+\end{equation*}
+
+If the norm of each of the factors on the right hand side of this equation is less than 1, then $\frac{\partial y(t)}{\partial y(s)}$ converges to zero at an exponentially increasing rate as $t - s$ increases. Therefore looking at the equation for $\frac{\partial E(t)}{\partial W}$, for a single term of the summation with $\tau \ll t$,
+
+\begin{equation*}
+\biggl\lvert \frac{\partial E(t)}{\partial y(\tau)} \frac{\partial y(\tau)}{\partial W} \biggr\rvert \to 0
+\end{equation*}
+
+So for a given $t$, 
 
 \section{The Hopfield network as an example of an autoassociative memory model}
 
