@@ -1,0 +1,44 @@
+\documentclass[siggraph, review=false]{acmart}
+
+\usepackage{booktabs} % For formal tables
+\citestyle{acmauthoryear}  % Author-year format
+
+\settopmatter{printacmref=false} % Removes citation information below abstract
+\renewcommand\footnotetextcopyrightpermission[1]{} % removes footnote with conference information in first column
+\pagestyle{plain} % removes running headers
+
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+
+\begin{document}
+\title{CSE847 Project Intermediate Report}
+\subtitle{An analysis and verification of the efficacy of using Fast Weights with RNNs}
+
+\author{Eric Alan Wayman}
+\affiliation{%
+  \institution{Department of Computer Science \& Engineering\\Michigan State University}
+}
+\email{waymane1@msu.edu}
+
+\author{Adi Mathew}
+\affiliation{%
+  \institution{Department of Computer Science \& Engineering\\Michigan State University}
+}
+\email{mathewa6@msu.edu}
+
+\begin{abstract}
+This report describes our progress towards the goal of performing an analysis and reproduction of tests using the Fast Weights method \cite{DBLP:conf/nips/BaHMLI16}.
+\end{abstract}
+
+\keywords{RNN, LSTM, Fast Weights, Memory}
+
+\maketitle
+
+% \input{samplebody-conf}
+
+\input{wayman_mathew_final-body}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{wayman_mathew_final}
+
+\end{document}
