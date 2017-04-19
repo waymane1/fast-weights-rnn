@@ -395,7 +395,9 @@ The definition of the Jacobian is as follows:
 \end{equation*}
 \end{definition}
 
-\subsection{Derivation of gradients in BPTT}
+\subsection{Top-level gradients in BPTT}
+
+\subsubsection{Gradient with respect to $W$}
 
 For $a = Wh$,
 
@@ -450,6 +452,24 @@ where $\otimes$ is the Kronecker product.
   J_{W}E_t & = (J_{\widehat{y_t}} E_t)(J_{o_t}\widehat{y_t})(J_{h_t}o_t)(J_{a_t}h_t)(J_{W}a_t) \\
 \end{align*}
 
+\begin{equation*}
+  E = -\ln(p) = -\sum_{\tau=1}^t \sum_{k=1}^K y_{\tau k} \ln\left(\widehat{y_{\tau k}}\right) = \sum_{\tau=1}^{t} E_t
+\end{equation*}
+
+where
+
+\begin{equation*}
+  E_t = -\sum_{j=1}^{k} y_{tj} \ln \left(\widehat{y_{tj}}\right)
+\end{equation*}
+
+\begin{align*}
+  J_{\widehat{y_t}}E_t & = \frac{\partial E_t}{\partial y_t^T} \\
+  & = -\begin{pmatrix}\frac{1}{\widehat{y_{t1}}}y_{t1} & \cdots & \frac{1}{\widehat{y_{tk}}}y_{tk}\end{pmatrix} \\
+  & = -\left(\frac{y_t}{\widehat{y_t}}\right)^T
+\end{align*}
+%
+where the quotient in the expression $\frac{y_t}{\widehat{y_t}}$ is performed element-wise as shown above.
+
 $J_{o_t}\widehat{y_t}$ is the Jacobian of the softmax:
 
 \begin{equation*}
@@ -457,7 +477,7 @@ $J_{o_t}\widehat{y_t}$ is the Jacobian of the softmax:
     \frac{\exp(o_1(t))}{\sum_{i=1}^k \exp(o_i(t))} & \cdots &  \frac{\exp(o_k(t))}{\sum_{i=1}^k \exp(o_i(t))}
   \end{pmatrix}^T
 \end{equation*}
-
+%
 We note that
 
 \begin{align*}
@@ -465,7 +485,7 @@ We note that
   & = \frac{\exp(o_i)}{\sum \exp(o_j)} - \left(\frac{\exp(o_i)}{\sum \exp(o_j)}\right)^2 \\
   & = y_i (1 - y_i)
 \end{align*}
-
+%
 For $l \neq i$,
 
 \begin{align*}
@@ -473,7 +493,7 @@ For $l \neq i$,
   & = \frac{-\exp(o_i)\exp(o_j)}{(\sum \exp o_j)^2} \\
   & = -y_i y_l
 \end{align*}
-
+%
 Therefore
 
 \begin{align*}
@@ -512,15 +532,49 @@ Putting this all together and converting the Jacobian into a gradient we obtain
 \begin{align*}
   \nabla_W E_t & = \left(J_W E_t\right)^T \\
   \begin{split}
-    & = -\left(h(t)^T \otimes I \right)^T \mbox{diag}\left(1 - \tanh^2(a_t)\right) V^T \\
-    & \qquad \qquad (\mbox{diag}(y_t) - y_t y_t^T) \left(\frac{y_{tk}}{\widehat{y_{tk}}}\right)
+    & = \left(h(t)^T \otimes I \right)^T \mbox{diag}\left(1 - \tanh^2(a_t)\right) V^T \\
+    & \qquad \qquad (\mbox{diag}(y_t) - y_t y_t^T) \left(-\frac{y_t}{\widehat{y_t}}\right)
   \end{split} \\
   \begin{split}
-    & = -(h_t \otimes I)\mbox{diag}\left(1 - \tanh^2(a_t)\right) V^T \\
-    & \qquad \qquad (\mbox{diag}(y_t) - y_t y_t^T) \left(\frac{y_{tk}}{\widehat{y_{tk}}}\right)
+    & = (h_t \otimes I)\mbox{diag}\left(1 - \tanh^2(a_t)\right) V^T \\
+    & \qquad \qquad (\mbox{diag}(y_t) - y_t y_t^T) \left(-\frac{y_t}{\widehat{y_t}}\right)
   \end{split}
 \end{align*}
 
+We confirm that the dimension of $\nabla_W E_t$ resulting from the above computation equals
+
+\begin{equation*}
+(m^2 \times m)(m \times m)(m \times k)(k \times k)(k \times 1) = (m^2 \times 1)
+\end{equation*}
+%
+so indeed this gradient has the proper dimension, i.e. the same dimension as $\mbox{vec } W$.
+
+\subsection{The back-propagation of gradients in BPTT}
+
+We observe the following:
+
+\begin{align*}
+  J_{a_{t-1}} E_t & = (J_{h_t} E_t)(J_{h_{t-1}} h_t)(J_{a_{t-1}} h_t) \\
+  \nabla_{a_{t-1}} E_t & = (J_{a_{t-1}} E_t)^T = \delta_{t-1}^t
+\end{align*}
+
+\begin{align*}
+  J_{a_{t-2}} E_t & = (J_{a_{t-1}} E_t)(J_{h_{t-2}} a_{t-1})(J_{a_{t-2}} h_{t-2}) \\
+  \nabla_{a_{t-2}} E_t & = (\nabla_{a_{t-2}} h_{t-2}) (\nabla_{h_{t-2}} a_{t-1}) \delta_{t-1}^t = \delta_{t-2}^t
+\end{align*}
+
+\begin{align*}
+  J_{a_{t-3}} E_t & = (J_{a_{t-2}} E_t)(J_{h_{t-3}} a_{t-2})(J_{a_{t-3}} h_{t-3}) \\
+  \nabla_{a_{t-3}} E_t & = (\nabla_{a_{t-3}} h_{t-3}) (\nabla_{h_{t-3}} a_{t-2}) \delta_{t-2}^t = \delta_{t-3}^t
+\end{align*}
+%
+So we see that the result of the gradient of $E_t$ with respect to $a$ at a time step $\tau$ is a function of the gradient with respect to $a$ at time step $\tau + 1$. What this means in practice is once $\delta_{t-1}^t$ has been calculated, the calculation of the gradient with respect to each previous time step requires the calculating only two gradients, rather an ever-expanding product of gradients.
+
+Connecting this back to our task of taking the gradient $E_t$ with respect to one of our weight matrices, we note the following connections:
+
+\begin{align*}
+J_{W} E_t = (J_{a_t} E_t)(J_W a_t)
+\end{align*}
 
 \section{iRNN}
 
