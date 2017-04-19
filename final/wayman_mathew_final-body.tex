@@ -317,9 +317,24 @@ A standard RNN has the mathematical form \cite[p. 381]{Goodfellow-et-al-2016}
 \begin{align*}
   a(t) & = b + W h(t-1) + U x(t) \\
   h(t) & = \tanh(a(t)) \\
-  o(t) & = c + V(h) \\
+  o(t) & = c + V h(t) \\
   \widehat{y}(t) & = \mbox{softmax}(o(t))
 \end{align*}
+
+We choose our dimensions as:
+
+\begin{center}
+\begin{tabular}{c c}
+  Variable & Dimensions \\
+  \hline
+  $y$ & $k \times 1$ \\
+  $o$ & $k \times 1$ \\
+  $V$ & $k \times m$ \\
+  $h$ & $m \times 1$ \\
+  $a$ & $m \times 1$ \\
+  $W$ & $m \times m$
+\end{tabular}
+\end{center}
 
 When discussing stability for such a network, we are referring to the stability of the hidden unit $h$. For a sequence task, the hidden unit at each point in time should predict the desired output, and should incorporate information from as many previous time steps as will affect the desired output.
 
@@ -355,6 +370,158 @@ Why do we say ``we cannot properly train the network'' due to the above property
 
 Now assume the model we specify is the RNN model from above. In that model, making a change to $y(\tau)$ requires a particular update to $W$. However, the adjustment to the weight matrix corresponding to the dependency $\frac{\partial y(t)}{\partial y(\tau)}$ is now the product of gradients less than 1, which is essentially 0 for $\tau \ll t$. Therefore the model structure has forced the term that would allow the weights to update to reflect the desired change in $y(\tau)$ to have almost no effect on the weight update. The weights will never change to give the desired effect (we note in passing that such a change to $y(\tau)$ leading to a change in $y(t)$ corresponds to the trajectory changing to a different basin of attraction). This flaw in RNNs is known as the \emph{vanishing gradient problem}.
 
+\section{Training RNNs}
+
+\subsection{A note on gradients when matrices are involved}
+
+Many of the often-seen versions of matrix derivatives have shortcomings when generalizing them to cases when both a vector and a matrix or a matrix and a matrix are involved \cite[p. 193-197]{magnus1999matrix}. We use the definition recommended by \citet{magnus1999matrix}, for which all properties of Jacobian matrices are properly preserved. In order to state it, we first define the $\mbox{vec}$ operator:
+
+\begin{definition}
+  Let $A$ be an $m \times n$ matrix and $a_i$ its $j$-th column. Then $\mbox{vec } A$ is the $mn \times 1$ vector
+  \begin{equation*}
+    \mbox{vec } A = \begin{pmatrix}
+      a_1 \\ a_2 \\ \vdots \\ a_n
+      \end{pmatrix}
+  \end{equation*}
+  \cite[p. 34]{magnus1999matrix}
+\end{definition}
+
+The definition of the Jacobian is as follows:
+
+\begin{definition}
+  Let $F$ be a differentiable $m \times p$ real matrix function of an $n \times q$ matrix of real variables $X$. The Jacobian matrix of $F$ at $X$ is the $mp \times nq$ matrix
+\begin{equation*}
+  D F(X) = \frac{\partial \mbox{vec } F(X)}{\partial (\mbox{vec } X)^T}
+\end{equation*}
+\end{definition}
+
+\subsection{Derivation of gradients in BPTT}
+
+For $a = Wh$,
+
+\begin{equation*}
+\quad J_{W}(a) = \frac{\partial \mbox{vec}(Wh)}{\partial (\mbox{vec } W)^T}
+\end{equation*}
+
+We calculate $J_{W}(a)$ as follows:
+
+\begin{equation*}
+W = \begin{pmatrix} w_1 & \ldots & w_m \end{pmatrix}
+\end{equation*}
+
+where $w_i$ are the columns of $W$. Then
+%
+\begin{align*}
+  (\mbox{vec} W)^T & = \begin{pmatrix}w_1 \\ \vdots \\ w_m \end{pmatrix}^T = \begin{pmatrix}w_1^T \cdots w_m^T \end{pmatrix} \\
+  & = \begin{pmatrix} w_{11} \cdots w_{m1} \cdots w_{1m} \cdots w_{mm} \end{pmatrix}
+\end{align*}
+%
+\begin{equation*}
+  Wh = \begin{pmatrix}
+    w_{11} & \cdots & w_{1m} \\
+    \vdots & \vdots & \vdots \\
+    w_{m1} & \cdots & w_{mm}
+  \end{pmatrix} \begin{pmatrix}
+    h_1 \\ \vdots \\ h_m
+  \end{pmatrix} = \begin{pmatrix}
+    \sum_{i=1}^m w_{1i} h_i \\
+    \vdots \\
+    \sum_{i=1}^m w_{mi} h_i
+  \end{pmatrix}
+\end{equation*}
+%
+Therefore
+%
+\begin{equation*}
+  J_W(a) = \begin{pmatrix}
+    h_1 I & h_2 I \ldots h_m I
+  \end{pmatrix}
+\end{equation*}
+%
+where we have written the above result in a compact way due to formatting limitations; when deriving the above result we wrote $m$ rows and the first $m$ columns out fully. We further ``simplify'' the result by noting
+
+\begin{equation*}
+J_W(a) = \begin{pmatrix}h_1 I & h_2 I \ldots h_m I \end{pmatrix} = h^T \otimes I
+\end{equation*}
+
+where $\otimes$ is the Kronecker product.
+
+\begin{align*}
+  J_{W}E_t & = (J_{\widehat{y_t}} E_t)(J_{o_t}\widehat{y_t})(J_{h_t}o_t)(J_{a_t}h_t)(J_{W}a_t) \\
+\end{align*}
+
+$J_{o_t}\widehat{y_t}$ is the Jacobian of the softmax:
+
+\begin{equation*}
+  \widehat{y_t} = \begin{pmatrix}
+    \frac{\exp(o_1(t))}{\sum_{i=1}^k \exp(o_i(t))} & \cdots &  \frac{\exp(o_k(t))}{\sum_{i=1}^k \exp(o_i(t))}
+  \end{pmatrix}^T
+\end{equation*}
+
+We note that
+
+\begin{align*}
+  J_{o_i}(y_i) & = \frac{\partial y_i}{\partial o_i} = \frac{(\sum \exp(o_j)) \exp(o_i) - (\exp(o_i))^2}{(\sum \exp(o_j))^2} \\
+  & = \frac{\exp(o_i)}{\sum \exp(o_j)} - \left(\frac{\exp(o_i)}{\sum \exp(o_j)}\right)^2 \\
+  & = y_i (1 - y_i)
+\end{align*}
+
+For $l \neq i$,
+
+\begin{align*}
+  J_{o_l}(y_i) & = \frac{(\sum \exp(o_j))(o_l) - \exp(o_i)\exp(o_l)}{(\sum \exp o_j)^2} \\
+  & = \frac{-\exp(o_i)\exp(o_j)}{(\sum \exp o_j)^2} \\
+  & = -y_i y_l
+\end{align*}
+
+Therefore
+
+\begin{align*}
+  J_{o_t}\widehat{y_t} & = \begin{pmatrix}
+    y_1 (1 - y_1) & -y_1 y_2 & \cdots & -y_1 y_k \\
+    -y_2 y_1 & y_2 (1 - y_2) & \cdots & -y_2 y_k \\
+    \ldots & \cdots & \cdots & \cdots \\
+    -y_k y_1 & \cdots & \cdots & y_k (1 - y_k)
+  \end{pmatrix} \\
+  & = \mbox{diag}(y_t) - y_t y_t^T
+\end{align*}
+%
+where \mbox{diag} indicates a square matrix with the elements of $y_t$ on the diagonal.
+
+For $J_{h(t)}(o(t)) = J_{h(t)}Vh(t)$, we apply the definition of the Jacobian so
+
+\begin{equation*}
+  Vh(t) = \begin{pmatrix}\sum_{i=1}^{k} v_i h_i
+    \end{pmatrix}
+\end{equation*}
+%
+where $v_i$ are the columns of $V$ and $h_i$ are the elements of $h(t)$. Then 
+
+\begin{equation*}
+  J_{h_t}(o_t) = J_{h(t)}Vh(t) = \frac{\partial Vh(t)}{h(t)^T} = V
+\end{equation*}
+
+For $J_{a_t}h_t$, since $\frac{\partial \tanh(y(x))}{\partial x} = (1 - \tanh^2(x))$,
+
+\begin{equation*}
+  J_{a_t}h_t = \frac{\partial \tanh(h(t))}{\partial (a(t)^T)} = \mbox{diag}(1 - \tanh^2(a(t)))
+\end{equation*}
+
+Putting this all together and converting the Jacobian into a gradient we obtain
+
+\begin{align*}
+  \nabla_W E_t & = \left(J_W E_t\right)^T \\
+  \begin{split}
+    & = -\left(h(t)^T \otimes I \right)^T \mbox{diag}\left(1 - \tanh^2(a_t)\right) V^T \\
+    & \qquad \qquad (\mbox{diag}(y_t) - y_t y_t^T) \left(\frac{y_{tk}}{\widehat{y_{tk}}}\right)
+  \end{split} \\
+  \begin{split}
+    & = -(h_t \otimes I)\mbox{diag}\left(1 - \tanh^2(a_t)\right) V^T \\
+    & \qquad \qquad (\mbox{diag}(y_t) - y_t y_t^T) \left(\frac{y_{tk}}{\widehat{y_{tk}}}\right)
+  \end{split}
+\end{align*}
+
+
 \section{iRNN}
 
 Rectified linear units, or ReLUs, seem to have been introduced by \citealt{hahnloser2000digital}. It has been shown that the use of the ReLU as the activation function for an RNN allows the learning of long-term dependencies given that the weight matrix is initialized as a scalar multiple of the identity matrix \cite[p. 2]{DBLP:journals/corr/LeJH15}. The ReLU takes the form
@@ -363,12 +530,16 @@ Rectified linear units, or ReLUs, seem to have been introduced by \citealt{hahnl
 f(x) = \max(0, x)
 \end{equation*}
 
-\subsection{Training}
-
 \citealt{DBLP:conf/nips/BaHMLI16} do not specify which cost function was used for training. Since a softmax function is used to produce the predicted values \cite[p. 5]{DBLP:conf/nips/BaHMLI16}, the predicted values can be interpreted as probabilities and we can thus use the cross-entropy cost function for the multiclass classification problem \cite{bishop2006pattern},
 
 \begin{equation*}
--\sum_{n=1}^N \sum_{k=1}^K \widehat{y_{nk}}^{t_{nk}}
+p(y; U, W, V) = \prod_{\tau=1}^{t}\prod_{k=1}^{K}\widehat{y_{\tau k}}^{y_{\tau k}}
+\end{equation*}
+
+We minimize the negative logarithm of the cross entropy,
+
+\begin{equation*}
+E = -\ln(p) = -\sum_{\tau=1}^t \sum_{k=1}^K \widehat{y_{\tau k}}^{y_{\tau k}}
 \end{equation*}
 
 \section{The Hopfield network as an example of an autoassociative memory model}
