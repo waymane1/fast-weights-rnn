@@ -316,10 +316,12 @@ A standard RNN has the mathematical form \cite[p. 381]{Goodfellow-et-al-2016}
 
 \begin{align*}
   a(t) & = b + W h(t-1) + U x(t) \\
-  h(t) & = \tanh(a(t)) \\
+  h(t) & = \mbox{activ}(a(t)) \\
   o(t) & = c + V h(t) \\
   \widehat{y}(t) & = \mbox{softmax}(o(t))
 \end{align*}
+%
+where we introduce the notation \mbox{activ} to refer to the chosen activation function (replacing the $\tanh$ in the book).
 
 We choose our dimensions as:
 
@@ -372,7 +374,11 @@ Now assume the model we specify is the RNN model from above. In that model, maki
 
 \section{Training RNNs}
 
-\subsection{A note on gradients when matrices are involved}
+\begin{equation*}
+  E = -\ln(p) = -\sum_{\tau=1}^t \sum_{k=1}^K y_{\tau k} \ln\left(\widehat{y_{\tau k}}\right) = \sum_{\tau=1}^{t} E_t
+\end{equation*}
+
+\subsection{A note on Jacobians when matrices are involved}
 
 Many of the often-seen versions of matrix derivatives have shortcomings when generalizing them to cases when both a vector and a matrix or a matrix and a matrix are involved \cite[p. 193-197]{magnus1999matrix}. We use the definition recommended by \citet{magnus1999matrix}, for which all properties of Jacobian matrices are properly preserved. In order to state it, we first define the $\mbox{vec}$ operator:
 
@@ -391,35 +397,101 @@ The definition of the Jacobian is as follows:
 \begin{definition}
   Let $F$ be a differentiable $m \times p$ real matrix function of an $n \times q$ matrix of real variables $X$. The Jacobian matrix of $F$ at $X$ is the $mp \times nq$ matrix
 \begin{equation*}
-  D F(X) = \frac{\partial \mbox{vec } F(X)}{\partial (\mbox{vec } X)^T}
+  D F(X) = \frac{\partial \mbox{ vec } F(X)}{\partial (\mbox{vec } X)^T}
 \end{equation*}
 \end{definition}
 
-\subsection{Top-level gradients in BPTT}
+\subsection{Jacobians of the error term with respect to weights and their back-propagation}
 
-\subsubsection{Gradient with respect to $W$}
+We note that there is no advantage to using the gradient over the Jacobian in cases where the derivative of a scalar is being taken with respect to a matrix. In the case where the derivative of a scalar is taken with respect to a vector and the weight matrix is also a vector, the gradient gives the same dimension as the weight vector so gradient descent is notationally simpler when using gradients. However in the case here, there is no advantage, so we retain the Jacobian since the chain rule expands ``forward'' rather than in the reverse order resulting from the transposing necessary to produce the gradient.
 
-For $a = Wh$,
+We begin by attempting to compute $J_{W} E_t$:
+
+\begin{align*}
+  J_{W} E_t & = (J_{a_t} E_t)(J_W a_t) \\
+  & = (J_{a_t} E_t)(h_t + J_W h_{t-1}) \\
+  & = (J_{a_t} E_t)h_t + (J_{a_t} E_t)(J_w h_{t-1})
+\end{align*}
+%
+The second term cannot be reformulated to include $J_{a_{t-1}} E_t$ since the chain of derivatives has been ``broken'' (i.e. $J_{h_{t-1}} a_t$, the ``connecting term,'' does not appear). A solution to this is to use the notation $W_t$ to represent the $W$ appearing at each time step \cite[p. 386]{Goodfellow-et-al-2016}. Using this notation, $J_{W} E_t$ becomes
+
+\begin{align*}
+  J_{W} E_t & = (J_{a_t} E_t)(J_{W} a_t) \\
+  & = (J_{a_t} E_t)(J_{W_t} a_t + (J_{h_{t-1}} a_t)(J_{a_{t-1}} h_{t-1})(J_{W}a_{t-1})) \\
+  & = (J_{a_t} E_t)(J_{W_t} a_t) + (J_{a_{t-1}} E_t))(J_{W}a_{t-1}) \\
+  \begin{split}
+    & = (J_{a_t} E_t)(J_{W_t} a_t) + (J_{a_{t-1}} E_t)(J_{w_{t-1}} a_{t-1} + \\
+    & \qquad (J_{h_{t-2}} a_{t-1})(J_{a_{t-2}} h_{t-1})(J_{W}a_{t-2}))
+  \end{split} \\
+  & = (J_{a_t} E_t)(J_{W_t} a_t) + (J_{a_{t-1}} E_t)(J_{w_{t-1}} a_{t-1}) + \\
+  \begin{split}
+    & \qquad (J_{a_{t-2}} E_t)(J_W a_{t-2})
+  \end{split} \\
+  & = \sum_{\tau=2}^{t}  (J_{a_\tau} E_t)(J_{W_\tau} a_\tau)
+\end{align*}
+%
+where $\tau$ begins at 2 since $h_{(2-1)} = h_1$ is the first value of $h_\tau$.
+
+We then observe the following:
+
+\begin{align*}
+  J_{a_t} E_t = \delta_{t}^t
+\end{align*}
+
+\begin{align*}
+  J_{a_{t-1}} E_t & = (J_{a_t} E_t)(J_{h_{t-1}} a_t)(J_{a_{t-1}} h_{t-1}) \\
+  & = \delta_{t}^t (J_{h_{t-1}} a_{t})(J_{a_{t-1}} h_{t-1}) \\
+  & = \delta_{t-1}^t
+\end{align*}
+
+\begin{align*}
+  J_{a_{t-2}} E_t & = (J_{a_{t-1}} E_t)(J_{h_{t-2}} a_{t-1})(J_{a_{t-2}} h_{t-2}) \\
+  & = \delta_{t-1}^t (J_{h_{t-2}} a_{t-1})(J_{a_{t-2}} h_{t-2}) \\
+  & = \delta_{t-2}^t
+\end{align*}
+%
+So we see that the result of the Jacobian of $E_t$ with respect to $a$ at a time step $\tau$ is a function of the Jacobian with respect to $a$ at time step $\tau + 1$. What this means in practice is once $\delta_{t-1}^t$ has been calculated, the calculation of the Jacobian with respect to each previous time step requires the calculating only two Jacobians, rather an ever-expanding product of Jacobians.
+
+Combining the above observation with our previous derivation of $J_W E_t$ gives
+
+\begin{align*}
+  J_W E_t & = \sum_{\tau=2}^{t} (J_{a_\tau} E_t)(J_{W_\tau} a_\tau) \\
+  & = \sum_{\tau=2}^{t} \delta_{\tau}^t (J_{W_\tau} a_\tau)
+\end{align*}
 
 \begin{equation*}
-\quad J_{W}(a) = \frac{\partial \mbox{vec}(Wh)}{\partial (\mbox{vec } W)^T}
+\delta_{\tau}^t = \delta_{\tau + 1}^t (J_{h_\tau} a_{\tau + 1})(J_{a_\tau} h_\tau), \quad 2 \leq \tau \leq t -1
 \end{equation*}
-
-We calculate $J_{W}(a)$ as follows:
 
 \begin{equation*}
-W = \begin{pmatrix} w_1 & \ldots & w_m \end{pmatrix}
+\delta_{t}^t = J_{a_t} E_t
 \end{equation*}
 
-where $w_i$ are the columns of $W$. Then
+So what remains is to calculate the general expressions for the quantities in the above expressions.
+
+\subsubsection{$J_{W_\tau} a_\tau$}
+
+Since $a_{\tau} = W_\tau h_{\tau - 1}$,
+
+\begin{equation*}
+\quad J_{W_\tau}(a_\tau) = \frac{\partial \mbox{vec}(W_\tau h_{\tau - 1})}{\partial (\mbox{vec } W_\tau)^T}
+\end{equation*}
+
+We calculate $J_{W_\tau}(a_\tau)$ as follows:
+
+\begin{equation*}
+W_\tau = \begin{pmatrix} w_1 & \ldots & w_m \end{pmatrix}
+\end{equation*}
+
+where $w_i$ are the columns of $W_\tau = W$. Then
 %
 \begin{align*}
-  (\mbox{vec} W)^T & = \begin{pmatrix}w_1 \\ \vdots \\ w_m \end{pmatrix}^T = \begin{pmatrix}w_1^T \cdots w_m^T \end{pmatrix} \\
+  (\mbox{vec } W_\tau)^T & = \begin{pmatrix}w_1 \\ \vdots \\ w_m \end{pmatrix}^T = \begin{pmatrix}w_1^T \cdots w_m^T \end{pmatrix} \\
   & = \begin{pmatrix} w_{11} \cdots w_{m1} \cdots w_{1m} \cdots w_{mm} \end{pmatrix}
 \end{align*}
 %
 \begin{equation*}
-  Wh = \begin{pmatrix}
+  W_\tau h_{\tau - 1} = \begin{pmatrix}
     w_{11} & \cdots & w_{1m} \\
     \vdots & \vdots & \vdots \\
     w_{m1} & \cdots & w_{mm}
@@ -432,31 +504,53 @@ where $w_i$ are the columns of $W$. Then
   \end{pmatrix}
 \end{equation*}
 %
-Therefore
+where $h_i$ are the columns of $h_{\tau - 1}$. Therefore
 %
 \begin{equation*}
-  J_W(a) = \begin{pmatrix}
-    h_1 I & h_2 I \ldots h_m I
+  J_{W_\tau}(a_{\tau}) = \begin{pmatrix}
+    h_1 I_m & h_2 I_m \ldots h_m I_m
   \end{pmatrix}
 \end{equation*}
 %
-where we have written the above result in a compact way due to formatting limitations; when deriving the above result we wrote $m$ rows and the first $m$ columns out fully. We further ``simplify'' the result by noting
+where $I_m$ is the $m \times m$ identity matrix and we have written the above result in a compact way due to formatting limitations; when deriving the above result we wrote $m$ rows and the first $m$ columns out fully. We further ``simplify'' the result by noting
 
 \begin{equation*}
-J_W(a) = \begin{pmatrix}h_1 I & h_2 I \ldots h_m I \end{pmatrix} = h^T \otimes I
+J_{W_\tau}(a_\tau) = \begin{pmatrix}h_1 I_m & h_2 I_m \ldots h_m I_m \end{pmatrix} = (h_{\tau - 1})^T \otimes I_m
 \end{equation*}
 
 where $\otimes$ is the Kronecker product.
 
-\begin{align*}
-  J_{W}E_t & = (J_{\widehat{y_t}} E_t)(J_{o_t}\widehat{y_t})(J_{h_t}o_t)(J_{a_t}h_t)(J_{W}a_t) \\
-\end{align*}
+\subsubsection{$J_{h_{\tau - 1}} a_\tau$}
 
 \begin{equation*}
-  E = -\ln(p) = -\sum_{\tau=1}^t \sum_{k=1}^K y_{\tau k} \ln\left(\widehat{y_{\tau k}}\right) = \sum_{\tau=1}^{t} E_t
+J_{h_{\tau - 1}} a_\tau = J_{h_{\tau - 1}} W h_{\tau - 1}
 \end{equation*}
 
-where
+\begin{equation*}
+W h_{\tau - 1} = \sum_{i=1}^m w_i h_i
+\end{equation*}
+%
+where $w_i$ are the columns of $W$ and $h_i$ are the elements of $h_{\tau - 1}$. So
+
+\begin{align*}
+  J_{h_{\tau - 1}} a_\tau = J_{h_{\tau - 1}} W h_{\tau - 1} = \frac{\partial W h_{\tau - 1}}{\partial (h_{\tau-1})^T} = W
+\end{align*}
+
+\subsubsection{$J_{a_\tau} h_\tau$}
+
+Since $h_\tau = \mbox{activ}(a_\tau)$,
+
+\begin{equation*}
+J_{a_\tau} h_\tau = J_{a_\tau}\mbox{activ}(a_\tau)
+\end{equation*}
+
+\subsubsection{$\delta_t^t = J_{a_t} E_t$}
+
+\begin{equation*}
+J_{a_t} E_t = (J_{\widehat{y_t}} E_t)(J_{o_t}\widehat{y_t})(J_{h_t}o_t)(J_{a_t}h_t)
+\end{equation*}
+
+This calculation is a bit more involved as it requires the computation of the above four quantities.
 
 \begin{equation*}
   E_t = -\sum_{j=1}^{k} y_{tj} \ln \left(\widehat{y_{tj}}\right)
@@ -508,73 +602,44 @@ Therefore
 %
 where \mbox{diag} indicates a square matrix with the elements of $y_t$ on the diagonal.
 
-For $J_{h(t)}(o(t)) = J_{h(t)}Vh(t)$, we apply the definition of the Jacobian so
+$J_{h_t}(o_t) = J_{h_t}Vh_t$ is of the same form as $J_{h_{\tau - 1}} a_\tau$, so
 
 \begin{equation*}
-  Vh(t) = \begin{pmatrix}\sum_{i=1}^{k} v_i h_i
-    \end{pmatrix}
+  J_{h_t}(o_t) = J_{h_t}Vh_t = V
+\end{equation*}
+
+$J_{a_t}h_t = J_{a_t}\mbox{activ}(a_t)$, which will depend on the particular activation function chosen. The activation function is applied element-wise; note that if the function depends only on the current element and not any others, the Jacobian will be of the form $J_{a_t}\mbox{activ}(a_t) = \mbox{diag}(\mbox{activ}^\prime(a_t))$.
+
+Putting this all together we obtain
+
+\begin{align*}
+  \delta_t^t & = J_{a_t} E_t = (J_{\widehat{y_t}} E_t)(J_{o_t}\widehat{y_t})(J_{h_t}o_t)(J_{a_t}h_t) \\
+  & = -\left(\frac{y_t}{\widehat{y_t}}\right)^T \left(\mbox{diag}(y_t) - y_t y_t^T\right) V \left(J_{a_t}\mbox{activ}(a_t)\right)
+\end{align*}
+
+\subsubsection{Checking our work}
+
+We confirm that the dimension of $J_W E_t$ resulting from the above computation is appropriate for updating the values of $W$ with a gradient descent-type algorithm, i.e. when reshaped that it has the same dimension of $W$.
+
+Since
+
+\begin{equation*}
+\mbox{dim}(\delta_\tau^t) = (1 \times k)(k \times k)(k \times m)(m \times m) = (1 \times m)
+\end{equation*}
+
+and
+
+\begin{equation*}
+\mbox{dim}(J_{W_\tau} a_\tau) = \mbox{dim}((h_{\tau - 1})^T \otimes I_m) = (m \times m^2)
+\end{equation*}
+
+we have
+
+\begin{equation*}
+\mbox{dim}((\delta_\tau^t)(J_{W_\tau} a_\tau)) = (1 \times m^2)
 \end{equation*}
 %
-where $v_i$ are the columns of $V$ and $h_i$ are the elements of $h(t)$. Then 
-
-\begin{equation*}
-  J_{h_t}(o_t) = J_{h(t)}Vh(t) = \frac{\partial Vh(t)}{h(t)^T} = V
-\end{equation*}
-
-For $J_{a_t}h_t$, since $\frac{\partial \tanh(y(x))}{\partial x} = (1 - \tanh^2(x))$,
-
-\begin{equation*}
-  J_{a_t}h_t = \frac{\partial \tanh(h(t))}{\partial (a(t)^T)} = \mbox{diag}(1 - \tanh^2(a(t)))
-\end{equation*}
-
-Putting this all together and converting the Jacobian into a gradient we obtain
-
-\begin{align*}
-  \nabla_W E_t & = \left(J_W E_t\right)^T \\
-  \begin{split}
-    & = \left(h(t)^T \otimes I \right)^T \mbox{diag}\left(1 - \tanh^2(a_t)\right) V^T \\
-    & \qquad \qquad (\mbox{diag}(y_t) - y_t y_t^T) \left(-\frac{y_t}{\widehat{y_t}}\right)
-  \end{split} \\
-  \begin{split}
-    & = (h_t \otimes I)\mbox{diag}\left(1 - \tanh^2(a_t)\right) V^T \\
-    & \qquad \qquad (\mbox{diag}(y_t) - y_t y_t^T) \left(-\frac{y_t}{\widehat{y_t}}\right)
-  \end{split}
-\end{align*}
-
-We confirm that the dimension of $\nabla_W E_t$ resulting from the above computation equals
-
-\begin{equation*}
-(m^2 \times m)(m \times m)(m \times k)(k \times k)(k \times 1) = (m^2 \times 1)
-\end{equation*}
-%
-so indeed this gradient has the proper dimension, i.e. the same dimension as $\mbox{vec } W$.
-
-\subsection{The back-propagation of gradients in BPTT}
-
-We observe the following:
-
-\begin{align*}
-  J_{a_{t-1}} E_t & = (J_{h_t} E_t)(J_{h_{t-1}} h_t)(J_{a_{t-1}} h_t) \\
-  \nabla_{a_{t-1}} E_t & = (J_{a_{t-1}} E_t)^T = \delta_{t-1}^t
-\end{align*}
-
-\begin{align*}
-  J_{a_{t-2}} E_t & = (J_{a_{t-1}} E_t)(J_{h_{t-2}} a_{t-1})(J_{a_{t-2}} h_{t-2}) \\
-  \nabla_{a_{t-2}} E_t & = (\nabla_{a_{t-2}} h_{t-2}) (\nabla_{h_{t-2}} a_{t-1}) \delta_{t-1}^t = \delta_{t-2}^t
-\end{align*}
-
-\begin{align*}
-  J_{a_{t-3}} E_t & = (J_{a_{t-2}} E_t)(J_{h_{t-3}} a_{t-2})(J_{a_{t-3}} h_{t-3}) \\
-  \nabla_{a_{t-3}} E_t & = (\nabla_{a_{t-3}} h_{t-3}) (\nabla_{h_{t-3}} a_{t-2}) \delta_{t-2}^t = \delta_{t-3}^t
-\end{align*}
-%
-So we see that the result of the gradient of $E_t$ with respect to $a$ at a time step $\tau$ is a function of the gradient with respect to $a$ at time step $\tau + 1$. What this means in practice is once $\delta_{t-1}^t$ has been calculated, the calculation of the gradient with respect to each previous time step requires the calculating only two gradients, rather an ever-expanding product of gradients.
-
-Connecting this back to our task of taking the gradient $E_t$ with respect to one of our weight matrices, we note the following connections:
-
-\begin{align*}
-J_{W} E_t = (J_{a_t} E_t)(J_W a_t)
-\end{align*}
+so indeed the Jacobian has the proper dimension, i.e. the same dimension as $\mbox{vec } W$ when reshaped.
 
 \section{iRNN}
 
