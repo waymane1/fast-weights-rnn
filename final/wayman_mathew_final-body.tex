@@ -52,7 +52,7 @@ Consider an associative memory which learns the single key pattern $f$ and value
 \begin{equation*}
 A = \eta g f^T
 \end{equation*}
-
+%
 The system performs perfectly:
 
 \begin{equation*}
@@ -73,6 +73,8 @@ we see that again $A$ performs recall perfectly since for all $j$,
   A f_j & = \sum_{i}A_i f_j = \sum_{k \neq j} A_k f_j + A_j f_j \\
   & = \sum_{k \neq j} g_k f_k^T f_j + \eta g_j \propto g_j
 \end{align*}
+%
+Note that generally, not all sets of key patterns would be orthogonal; we discuss the implications of this when we consider the associative memory structure from the Fast Weights paper.
 
 The above example suggests that outer products can be useful in constructing associative memory models. Using outer products to create memory storage is referred to ``the generalization of Hebb's postulate of learning'' \cite[p. 698]{Haykin:2009:NNC:1213811} since weight updates in Hebbian learning are calculated with outer products, as in the following example for a one-layer network \cite[p. 39-40]{fyfe2000}. For output $y \in \mathbb{R}^m$ and input $x \in \mathbb{R}^n$, if
 
@@ -118,10 +120,40 @@ or, writing out the matrices fully,
     \end{bmatrix}
   \end{split}
 \end{equation*}
+%
+Note that the simple example of autoassociative memory (with all key patterns orthogonal) would correspond to the weights matrix initially being the zero matrix and having only one update, after which the memory can recall perfectly. In general the linear system just described will not converge without some constraints being imposed \cite[p. 40]{fyfe2000}. Since it is known that given orthogonal key patterns only one weight update is needed, the algorithm can be run without considering issues of convergence or stability of the general case. However, stability of such systems is essential for learning algorithms based in such systems to exist; we will consider this point below in more detail when we discuss RNNs, for which it is widely recognized that stability of the systems when training is a central issue.
 
-Note that the simple example of autoassociative memory would correspond to the weights matrix initially being the zero matrix and having only one update, after which the memory can recall perfectly. In general the linear system just described will not converge without some constraints being imposed \cite[p. 40]{fyfe2000}. Since it is known that given orthogonal key patterns only one weight update is needed, the algorithm can be run without considering issues of convergence or stability of the general case. However, stability of such systems is essential for learning algorithms based in such systems to exist; we will consider this point below in more detail.
+\subsection{Autoassociative memory in the Fast Weights paper}
+\label{sec:autoassoc_memory}
 
-Since not all sets of key values are orthogonal, the above system is inadequate for most cases. Before moving to other models we provide an overview of stability issues necessary for the design and evaluation of recurrent networks.
+Here we consider the specific form of associative memory from the ``Using Fast Weights to Attend to the Recent Past'' paper \cite[p. 3]{DBLP:conf/nips/BaHMLI16}:
+
+\begin{align*}
+  A_t & = \lambda A_{t-1} + \eta h_t h_t^T \\
+  & = \lambda \left(\lambda A_{t-2} + \eta h_{t-1} h_{t-1}^T\right) + \eta h_t h_t^T \\
+  & = \lambda^2 A_{t-2} + \lambda \eta h_{t-1} h_{t-1}^T + \eta h_t h_t^T \\
+  & = \lambda^2 \left(\lambda A_{t-3} + \lambda \eta h_{t-2} h_{t-2}^T \right) + \lambda \eta h_{t-1} h_{t-1}^T + \eta h_t h_t^T \\
+  & = \lambda^3 A_{t-3} + \lambda^2 \eta h_{t-2} h_{t-2}^T + \lambda \eta h_{t-1} h_{t-1}^T + \lambda h_t h_t^T \\
+  & = \eta \sum_{\tau=1}^{t} \lambda^{t - \tau} h_\tau h_\tau^T
+\end{align*}
+%
+When right-multiplied by the current hidden state in the fast-weights inner loop update the result is
+
+\begin{align*}
+  A_{t-1} h_t & = \left(\eta \sum_{\tau=1}^{t-1} \lambda^{(t-1) - \tau} h_\tau h_\tau^T\right) h_t \\
+  & = \eta \sum_{\tau=1}^{t-1} \lambda^{(t-1) - \tau} h_\tau \left(h_\tau^T h_t\right)
+\end{align*}
+%
+This result is the sum of all past $h_\tau,\, \tau < t$, where each $h_\tau$ is weighted by two quantities:
+
+\begin{itemize}
+\item The further in the past is $\tau$, the smaller the magnitude of the resulting vector ($\lambda^{(t-1) - \tau}$ with $\lambda < 1$)
+\item The less similar are $h_t$ and $h_\tau$, the smaller the positive magnitude of the resulting vector (the multiple of $h_\tau$ ranges from 1 down to -1, when the vectors are pointed in exactly the opposite direction).
+\end{itemize}
+%
+So $A_{t-1} h_t$ represents the weighted sum of all $h_\tau,\, 1 \leq \tau \leq t-1$ with more recent vectors and vectors more similar to $h_t$ being given higher (more largely positive) weight.
+
+Before moving to other models we provide an overview of stability issues necessary for the design and evaluation of recurrent networks.
 
 \section{Stability of dynamic systems}
 
@@ -310,18 +342,21 @@ Note that this definition can be applied to nonautonomous systems as well. We al
 
 We also observe an explicit connection between the Lyapunov surface and this more general concept of basin of attraction. For the small neighborhood $\mathcal{U}$ of $\overline{x}$, where $V(x)$ is negative definite, it can be shown that the sets $\mathcal{U}_c = \{x \in \mathcal{U} : V(x) \leq c\}$ are in the basin of attraction of $\overline{x}$ \cite{anovozhilov}.
 
-\subsection{Information persistence}
+\section{RNNs and information persistence}
 
-A standard RNN has the mathematical form \cite[p. 381]{Goodfellow-et-al-2016}
+We present the following definition \cite[p. 381]{Goodfellow-et-al-2016} of what we call a ``standard RNN'':
 
+\begin{definition}
+  A \emph{standard RNN} is defined by the following equations:
 \begin{align*}
   a(t) & = b + W h(t-1) + U x(t) \\
   h(t) & = \mbox{activ}(a(t)) \\
   o(t) & = c + V h(t) \\
   \widehat{y}(t) & = \mbox{softmax}(o(t))
 \end{align*}
-%
-where we introduce the notation \mbox{activ} to refer to the chosen activation function (replacing the $\tanh$ in the book).
+\end{definition}
+
+\noindent where we introduce the notation \mbox{activ} to refer to the chosen activation function (replacing the $\tanh$ in the book).
 
 We choose our dimensions as:
 
@@ -374,8 +409,22 @@ Now assume the model we specify is the RNN model from above. In that model, maki
 
 \section{Training RNNs}
 
+\citealt{DBLP:conf/nips/BaHMLI16} do not specify which cost function was used for training. Since a softmax function is used to produce the predicted values \cite[p. 5]{DBLP:conf/nips/BaHMLI16}, the predicted values can be interpreted as probabilities and we can thus use the cross-entropy cost function for the multiclass classification problem \cite{bishop2006pattern},
+
 \begin{equation*}
-  E = -\ln(p) = -\sum_{\tau=1}^t \sum_{k=1}^K y_{\tau k} \ln\left(\widehat{y_{\tau k}}\right) = \sum_{\tau=1}^{t} E_t
+p(y; U, W, V) = \prod_{\tau=1}^{t}\prod_{j=1}^{k}\widehat{y_{\tau j}}^{y_{\tau j}}
+\end{equation*}
+
+We minimize the negative logarithm of the cross entropy,
+
+\begin{equation*}
+  E = -\ln(p) = -\sum_{\tau=1}^t \sum_{j=1}^k y_{\tau k} \ln\left(\widehat{y_{\tau j}}\right) = \sum_{\tau=1}^{t} E_t
+\end{equation*}
+%
+where
+
+\begin{equation*}
+  E_t = -\sum_{j=1}^{k} y_{tj} \ln \left(\widehat{y_{tj}}\right)
 \end{equation*}
 
 \subsection{A note on Jacobians when matrices are involved}
@@ -450,7 +499,7 @@ We then observe the following:
   & = \delta_{t-2}^t
 \end{align*}
 %
-So we see that the result of the Jacobian of $E_t$ with respect to $a$ at a time step $\tau$ is a function of the Jacobian with respect to $a$ at time step $\tau + 1$. What this means in practice is once $\delta_{t-1}^t$ has been calculated, the calculation of the Jacobian with respect to each previous time step requires the calculating only two Jacobians, rather an ever-expanding product of Jacobians.
+So we see that the result of the Jacobian of $E_t$ with respect to $a$ at a time step $\tau$ is a function of the Jacobian with respect to $a$ at time step $\tau + 1$. What this means in practice is once $\delta_{t-1}^t$ has been calculated, the calculation of the Jacobian with respect to the preceding time step requires the calculating only three Jacobians (the two required for the $\delta$ and the one which is right-multiplied to the $\delta$), rather an ever-expanding product of Jacobians.
 
 Combining the above observation with our previous derivation of $J_W E_t$ gives
 
@@ -552,10 +601,6 @@ J_{a_t} E_t = (J_{\widehat{y_t}} E_t)(J_{o_t}\widehat{y_t})(J_{h_t}o_t)(J_{a_t}h
 
 This calculation is a bit more involved as it requires the computation of the above four quantities.
 
-\begin{equation*}
-  E_t = -\sum_{j=1}^{k} y_{tj} \ln \left(\widehat{y_{tj}}\right)
-\end{equation*}
-
 \begin{align*}
   J_{\widehat{y_t}}E_t & = \frac{\partial E_t}{\partial y_t^T} \\
   & = -\begin{pmatrix}\frac{1}{\widehat{y_{t1}}}y_{t1} & \cdots & \frac{1}{\widehat{y_{tk}}}y_{tk}\end{pmatrix} \\
@@ -619,29 +664,51 @@ Putting this all together we obtain
 
 \subsubsection{Checking our work}
 
-We confirm that the dimension of $J_W E_t$ resulting from the above computation is appropriate for updating the values of $W$ with a gradient descent-type algorithm, i.e. when reshaped that it has the same dimension of $W$.
-
-Since
+We confirm that the dimension of $J_W E_t$ resulting from the above computation is appropriate for updating the values of $W$ with a gradient descent-type algorithm, i.e. when reshaped that it has the same dimension of $W$. Since
 
 \begin{equation*}
 \mbox{dim}(\delta_\tau^t) = (1 \times k)(k \times k)(k \times m)(m \times m) = (1 \times m)
 \end{equation*}
-
+%
 and
 
 \begin{equation*}
 \mbox{dim}(J_{W_\tau} a_\tau) = \mbox{dim}((h_{\tau - 1})^T \otimes I_m) = (m \times m^2)
 \end{equation*}
-
+%
 we have
 
 \begin{equation*}
 \mbox{dim}((\delta_\tau^t)(J_{W_\tau} a_\tau)) = (1 \times m^2)
 \end{equation*}
 %
-so indeed the Jacobian has the proper dimension, i.e. the same dimension as $\mbox{vec } W$ when reshaped.
+so indeed the Jacobian has the proper dimension, i.e. the same dimension as $\mbox{vec } W$.
 
-\section{iRNN}
+\section{Details of specific models used in Fast Weights paper}
+
+We move beyond our analysis of the ``standard'' RNN to the RNN variants used in the paper ``Using Fast Weights to Attend to the Recent Past.'' We reproduce the experiment from section 4.1 of that paper here, for the IRNN and Fast Weights RNN. The models have the following features, whose details are described in later sections:
+
+\begin{description}
+  \item[Activation function] Both models use the ReLU activation function.
+  \item[Weight initialization] The IRNN has weight matrices initialized from a uniform distribution, the Fast Weights RNN has weight matrices initialized from an identity matrix which are then scaled (the matrices referred to here are $V$, $W$, and $U$).
+  \item[Form of $a_t$] For the IRNN, $a_t$ has the same form as in Definition 6.1; $a_t$ for the Fast Weights RNN takes the form
+    \begin{equation*}
+      a_t = \mathcal{LN}(b + Wh_{t-1} + Ux_t) + A_t h_{t-1}^S
+    \end{equation*}
+    where the superscript $s$ on $h_{t-1}$ is not a power but an index indicating the number of iterations for the inner loop, and where $\mathcal{LN}$ indicates the layer normalization procedure. The $A_t$ term is the fast weights matrix.
+\end{description}
+
+\subsection{Fast Weights RNN details}
+
+The Fast Weights RNN feed-forward procedure contains the following enhancement over the IRNN: for a given time step $t$, once $h_t$ has been calculated, we call it $h_t^s$ where $s = 1$ initially, and calculate it iteratively $S$ times according to the following equation, stopping when $s+1 = S$.
+
+\begin{equation*}
+h_{t}^{s+1} = \mbox{activ}( \mathcal{LN}(b + Wh_{t-1} + Ux_{t}) + A_{t-1} h_{t}^s)
+\end{equation*}
+
+As discussed in section ~\ref{sec:autoassoc_memory}, $A_{t-1} h_t$ gives a weighted sum of all previous $h_\tau,\, \tau < t$ where the $h_\tau$ that are more recent and more similar to $h_t$ are given higher weight. What the above loop does is to influence $h_t$ in a direction towards the vector that results from this sum. Note that without this term, $h_t$ would be influenced by $h_{t-1}$ only through $W$, and influenced by $h_\tau,\, \tau < t-1$ only indirectly through $W$. Thus the effect of the addition of this term causes a $h_t$ to be influenced by all $h_\tau, \tau < t$ directly and in proportion to how recent and how similar each $h_\tau$ is to $h_t$.
+
+\subsection{ReLUs}
 
 Rectified linear units, or ReLUs, seem to have been introduced by \citealt{hahnloser2000digital}. It has been shown that the use of the ReLU as the activation function for an RNN allows the learning of long-term dependencies given that the weight matrix is initialized as a scalar multiple of the identity matrix \cite[p. 2]{DBLP:journals/corr/LeJH15}. The ReLU takes the form
 
@@ -649,17 +716,9 @@ Rectified linear units, or ReLUs, seem to have been introduced by \citealt{hahnl
 f(x) = \max(0, x)
 \end{equation*}
 
-\citealt{DBLP:conf/nips/BaHMLI16} do not specify which cost function was used for training. Since a softmax function is used to produce the predicted values \cite[p. 5]{DBLP:conf/nips/BaHMLI16}, the predicted values can be interpreted as probabilities and we can thus use the cross-entropy cost function for the multiclass classification problem \cite{bishop2006pattern},
+\subsection{The Adam optimizer}
 
-\begin{equation*}
-p(y; U, W, V) = \prod_{\tau=1}^{t}\prod_{k=1}^{K}\widehat{y_{\tau k}}^{y_{\tau k}}
-\end{equation*}
-
-We minimize the negative logarithm of the cross entropy,
-
-\begin{equation*}
-E = -\ln(p) = -\sum_{\tau=1}^t \sum_{k=1}^K \widehat{y_{\tau k}}^{y_{\tau k}}
-\end{equation*}
+\subsection{Layer normalization}
 
 \section{The Hopfield network as an example of an autoassociative memory model}
 
