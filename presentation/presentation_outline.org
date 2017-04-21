@@ -1,0 +1,9 @@
+#+TITLE: Presentation outline
+
+* RNNs basics (1 minute)
+* Associative memory basics (1 minute)
+* Dynamic systems approach (2 minutes)
+* RNNs in more detail: equations and training (2 minutes)
+* Why fast weights is necessary (1 minute)
+* How fast weights works and implementation (1 minutes)
+* Results (< 1 minute)
