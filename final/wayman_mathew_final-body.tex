@@ -1,39 +1,15 @@
 \section{Problem description}
 
-Until recently, recurrent neural networks (RNNs), used for sequential processing, did not have a good way to share memory between sequences.
-The Fast Weights method introduced in the paper to be analyzed in this project \cite{DBLP:conf/nips/BaHMLI16} addresses this limitation by providing the network with the capacity to store information about a given sequence during its duration to be used in the upcoming sequence. We will provide a full analysis and explanation of the methology, and replicate one of the empirical tests of the method, which compares its performance on an associative retrieval task to that of an iRNN and a long short-term memory network, or LSTM \cite{DBLP:journals/neco/HochreiterS97}.
+Standard recurrent neural networks (RNNs), used for processing of sequential data, have trouble performing within-sequence associative retrieval tasks since the ``slow weight'' matrices ($W$, $U$) that determine the path of the hidden states ($h_t$) over all sequences cannot be trained such that each specific sequence produces the proper associated value for the given sequence. The Fast Weights augmentation to RNNs introduced in the paper to be analyzed in this project \cite{DBLP:conf/nips/BaHMLI16} provides a solution to this problem by adding an additional term to the activation term $a_t$ which guides the $h_t$ for each sequence closer to the hidden state that generated the proper associated value. We provide an analysis and explanation of the methodology and reproduce an empirical test of the model on the associative retrieval task described in the paper, which compares the performance of a Fast Weights augmented RNN with an identity RNN or IRNN \cite{DBLP:journals/corr/LeJH15}.
+
+[and a long short-term memory network, or LSTM ?] \cite{DBLP:journals/neco/HochreiterS97}.
 
 \section{Survey of prior work}
 
 Recurrent neural networks (RNNs) are well-suited for learning from sequential data since weights are shared among different stages of the sequence \cite[p. 373]{Goodfellow-et-al-2016}. In particular, RNNs have been shown to perform well in tasks of speech-to-text conversion, creation of language models for both characters and words \cite{DBLP:conf/icml/SutskeverMH11} and even frame by frame video analyses \cite{mnih}. In RNNs, a given hidden state essentially acts as short-term memory for the previous state, determining the next hidden state together with the next input. One major issue in training RNNs with long input sequences is that the error gradients end up becoming very large or small \cite[p. 16]{DBLP:journals/nn/Schmidhuber15} which implies that even if the network can be trained, the effect of an early hidden state on the current hidden state is practically non-existent. This problem was overcome by the introduction of the long short-term memory RNN (LSTM RNN), whose activation function has a constant derivative and thus does not explode or vanish \cite[p. 19]{DBLP:journals/nn/Schmidhuber15}. Unfortunately, the LSTM RNN's memory is still limited to an amount proportional to the number of hidden units in a sequence \cite[p. 1]{DBLP:conf/nips/BaHMLI16}. Ba et al. propose the Fast Weights method to allow sequence-to-sequence memory in a recurrent network. We also note that Hopfield nets \cite{MacKay:2002:ITI:971143} implemented a similar storage rule \cite[p. 2]{DBLP:conf/nips/BaHMLI16} which we will review in our paper.
 
-\section{Preliminary plan}
-
-Our term paper will first present the Fast Weights methodology and place it in the context of methods that led to its development. We will provide an extended description and derivation of the methodology for the purpose of verifying its properties. Our goal will be to also replicate Section 4.1 of the paper, which compares the Fast Weights' performance on an associative retrieval task with that of an Identity-RNN (iRNN) \cite{DBLP:journals/corr/TalathiV15}, and an LSTM RNN \cite{DBLP:conf/nips/BaHMLI16}.
-
-This project is intended to verify the foundational math and reasoning which justify the use of Fast Weights in a network. This will require us to retrace the work leading up to the introduction of Fast Weights. The initial stage of our project will be to perform a thorough proof and derivation of the equations for RNNs, and clearly explain the issues that led to the creation of LSTM RNNs. For instance, we will explain the ``long-term memory issue'' in RNNs beginning as follows. The expression of the hidden unit $h_t$ at time $t$ is:
-
-\begin{equation*}
-  h_t = g(\vect{W} \cdot x_t + \vect{U} \cdot h_{t-1} + b_h)
-\end{equation*}
-
-After $t$ time steps, we get:
-
-\begin{equation*}
-  h_t = g(\vect{W} \cdot x_t + \vect{U} \cdot g(\cdots g(\vect{W} \cdot x_{t-T} + \vect{U} \cdot h_{t-T} + b_h) \cdots) + b_h)
-\end{equation*}
-
-Because of the $T$ nested multiplications of $h_{t-T}$ by $\vect{U}$, the effect of $h_{t-T}$ on $h_t$ is negligible (namely, the network does not have ``long-term memory''). We will provide a full exposition of how this problem manifests itself when the network is trained.
-
-The next stage of the project will involve explaining LSTM RNNs, their improvements over RNNs, and their limitations. We will then explain the mathematics of Fast Weights in RNNs, as well as several methodologies used in their implementation in the paper being studied such as layer normalization \cite{DBLP:journals/corr/BaKH16}, grid search \cite{Goodfellow-et-al-2016}, and the Adam optimizer \cite{DBLP:journals/corr/KingmaB14}.
-
-Following that, we will implement the Fast Associative Memory Network in MATLAB, and reproduce the analysis of Section 4.1 \cite{DBLP:conf/nips/BaHMLI16} of the paper to confirm the performance of Fast Weights as compared to the iRNN and the LSTM RNN.
 
 \section{Memory and recurrent neural networks}
-
-Paragraph about the neural perspective.
-
-Paragraph about treating as signals, etc.
 
 There are two major ways of incorporating the temporal element of sequential data in neural network learning. One is providing a memory structure that can present data from multiple time steps to a network that does not itself depend on the time variable (e.g. the time element is handled externally) \cite[p. 672-673]{Haykin:2009:NNC:1213811}. The other is incorporating the time element directly inside the network via the use of feedback. Feedback occurs in a system when the output of an element of the system eventually affects the input to that same element \cite[p. 18]{Haykin:2009:NNC:1213811}. There are two main types of feedback: local feedback and global feedback. Local feedback occurs when the output from an element directly feeds into that element's input, and global feedback occurs when the output eventually affects the input after passing through other elements first \cite[p. 673]{Haykin:2009:NNC:1213811}.
 
@@ -688,6 +664,8 @@ we have
 %
 so indeed the Jacobian has the proper dimension, i.e. the same dimension as $\mbox{vec } W$.
 
+The computation of the Jacobians for the other ``slow weight'' matrices is similar.
+
 \section{Details of specific models used in Fast Weights paper}
 
 We move beyond our analysis of the ``standard'' RNN to the RNN variants used in the paper ``Using Fast Weights to Attend to the Recent Past.'' We reproduce the experiment from section 4.1 of that paper here, for the IRNN and Fast Weights RNN. The models have the following features, whose details are described in later sections:
@@ -702,14 +680,14 @@ We move beyond our analysis of the ``standard'' RNN to the RNN variants used in 
     where the superscript $s$ on $h_{t-1}$ is not a power but an index indicating the number of iterations for the inner loop, and where $\mathcal{LN}$ indicates the layer normalization procedure. The $A_t$ term is the fast weights matrix.
 \end{description}
 
-\subsection{Fast Weights RNN details}
+\subsection{Fast Weights RNN inner loop}
 
 The Fast Weights RNN feed-forward procedure contains the following enhancement over the IRNN: for a given time step $t$, once $h_t$ has been calculated, we call it $h_t^s$ where $s = 1$ initially, and calculate it iteratively $S$ times according to the following equation, stopping when $s+1 = S$.
 
 \begin{equation*}
 h_{t}^{s+1} = \mbox{activ}( \mathcal{LN}(b + Wh_{t-1} + Ux_{t}) + A_{t-1} h_{t}^s)
 \end{equation*}
-
+%
 As discussed in section ~\ref{sec:autoassoc_memory}, $A_{t-1} h_t$ gives a weighted sum of all previous $h_\tau,\, \tau < t$ where the $h_\tau$ that are more recent and more similar to $h_t$ are given higher weight. What the above loop does is to influence $h_t$ in a direction towards the vector that results from this sum. Note that without this term, $h_t$ would be influenced by $h_{t-1}$ only through $W$, and influenced by $h_\tau,\, \tau < t-1$ only indirectly through $W$. Thus the effect of the addition of this term causes a $h_t$ to be influenced by all $h_\tau, \tau < t$ directly and in proportion to how recent and how similar each $h_\tau$ is to $h_t$.
 
 \subsection{ReLUs}
@@ -748,24 +726,10 @@ where $\widehat{m_i}$ and $\widehat{v_i}$ are bias-corrected estimates of mean a
 
 Layer normalization \cite{DBLP:journals/corr/BaKH16} transforms the $a_t$ being passed to the activation function by subtracting the mean and dividing by the standard deviation whose values are kept updated through time. This effectively minimizes the effect on the gradients of large deviations (``errors'') in the $a_t$ which speeds up convergence in gradient training.
 
-\begin{table*}[t]
-  \caption{Project timeline}
-  \label{tab:freq}
-  \begin{tabular}{llll}
-    \toprule
-    Week & Dates & Task & Deliverable\\
-    \midrule
-    Week 1 & (2/6   - 2/13) & Background reading & \\
-    Week 2 & (2/13  - 2/20) & Background reading & Proposal\\
-    Week 3 & (2/20  - 2/27) & Data set construction & \\
-    Week 4 & (2/27  - 3/6)  & Background, foundational proofs & \\
-    Week 5 & (3/6   - 3/13) & Partial implementation and preliminary run & \\
-    Week 6 & (3/20  - 3/27) & Compose Intermediate Report & Intermediate Report\\
-    Week 7 & (4/3   - 4/10) & Full implementation of networks & \\
-    Week 8 & (4/10  - 4/17) & Complete empirical analysis & \\
-    Week 9 & (4/17  - 4/24) & Compose Final Report & \\
-    Week 10 & (4/24 - 5/1) & Finish Final Report and rehearse Presentation & Final Report \\
-    & & & Presentation\\
-  \bottomrule
-\end{tabular}
-\end{table*}
+\section{Performance of Fast Weights RNN for associative retrieval task}
+
+We implemented the Fast Weights RNN using TensorFlow \cite{abadi2016tensorflow} and tested its performance versus an IRNN on the associative retrieval task described in \citealt{DBLP:conf/nips/BaHMLI16}, Section 4.1. Our results were as follows:
+
+INSERT TABLE HERE
+
+

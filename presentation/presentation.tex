@@ -1,15 +1,115 @@
 \documentclass{beamer}
+
+\title{An analysis and verification of the efficacy of using Fast Weights with RNNs}
+\subtitle{CSE847 (Machine Learning) Project Final Report}
+\author{Eric Alan Wayman\inst{1} \and Adi Mathew\inst{1}}
+\institute[Universities Here and There] % (optional)
+{
+  \inst{1}%
+  Department of Computer Science and Engineering\\
+  Michigan State University
+}
+\date{April 27, 2017}
+\subject{Computer Science}
+
 \begin{document}
 
-\begin{frame}
-    \frametitle{This is the first slide}
-    %Content goes here
-  \end{frame}
+\frame{\titlepage}
 
 \begin{frame}
-    \frametitle{This is the second slide}
-    \framesubtitle{A bit more information about this}
-    %More content goes here
-  \end{frame}
+  \frametitle{RNN basics}
+  \begin{definition}
+    A \emph{standard RNN} is defined by the following equations:
+    \begin{align*}
+      a(t) & = b + W h(t-1) + U x(t) \\
+      h(t) & = \mbox{activ}(a(t)) \\
+      o(t) & = c + V h(t) \\
+      \widehat{y}(t) & = \mbox{softmax}(o(t))
+    \end{align*}
+  \end{definition}
+  where we choose to minimize the cross-entropy cost function since we are performing a classification task:
+  \begin{equation*}
+    E = -\ln(p) = -\sum_{\tau=1}^t \sum_{j=1}^k y_{\tau k} \ln\left(\widehat{y_{\tau j}}\right) = \sum_{\tau=1}^{t} E_t
+  \end{equation*}
+\end{frame}
+
+\begin{frame}
+  \frametitle{RNN basics}
+  For the associative retrieval task, we wish to only look at the end-of-sequence $y$ so the error function becomes
+  \begin{equation*}
+    E = -\ln(p) = \sum_{j=1}^k y_{t k} \ln\left(\widehat{y_{t j}}\right) = E_t    
+  \end{equation*}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{RNN basics}
+    \begin{align*}
+      a(t) & = b + W h(t-1) + U x(t) \\
+      h(t) & = \mbox{activ}(a(t)) \\
+      o(t) & = c + V h(t) \\
+      \widehat{y}(t) & = \mbox{softmax}(o(t))
+    \end{align*}
+  Note that $W$ and $U$ when chosen with gradient-training procedures will choose $W$ and $U$ that influence $h_t$ such that $E_t$ over the entire batch is minimized (i.e. the ``average error'') is small. Can we do better? 
+\end{frame}
+
+\begin{frame}
+  \frametitle{Associative memory basics}
+Consider an associative memory which learns the single key pattern $f$ and value $g$ where both are column vectors (Anderson, \emph{An Introduction to Neural Networks}, 1995). We let the system be the matrix
+
+\begin{equation*}
+A = \eta g f^T
+\end{equation*}
+%
+The system performs perfectly:
+
+\begin{equation*}
+g^\prime = Af = \eta g f^T f \propto g
+\end{equation*}
+%
+since the $g^\prime$ that is recalled is proportional to the value $g$ associated with the input $f$.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Associative memory basics}
+Now consider a set of key patterns $f_i$ and associated values $g_i$ where all $f_i$ are orthogonal (we write $f_i \rightarrow g_i$ to denote the associations). Letting
+
+\begin{equation*}
+A_i = g_i f_i^T, \qquad A = \sum_{i} A_i
+\end{equation*}
+%
+we see that again $A$ performs recall perfectly since for all $j$,
+
+\begin{align*}
+  A f_j & = \sum_{i}A_i f_j = \sum_{k \neq j} A_k f_j + A_j f_j \\
+  & = \sum_{k \neq j} g_k f_k^T f_j + \eta g_j \propto g_j
+\end{align*}
+%
+\end{frame}
+
+\begin{frame}
+  \frametitle{Associative memory basics}
+  Using outer products to create memory storage is referred to ``the generalization of Hebb's postulate of learning'' (Haykin, \emph{Neural Networks and Learning Machines} 2009) since weight updates in Hebbian learning are calculated with outer products.
+
+  \vspace{0.5cm}
+  
+  Note that generally, not all sets of key patterns would be orthogonal; we discuss the implications of this when we consider the associative memory structure from the Fast Weights paper.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Dynamic systems approach}
+  %Content goes here
+\end{frame}
+
+\begin{frame}
+  \frametitle{RNN specification}
+  %Content goes here
+\end{frame}
+
+\begin{frame}
+  \frametitle{RNN training}
+  %Content goes here
+\end{frame}
+
 % etc
 \end{document}
