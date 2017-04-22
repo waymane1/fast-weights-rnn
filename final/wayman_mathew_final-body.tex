@@ -342,6 +342,10 @@ Note that this definition can be applied to nonautonomous systems as well. We al
 
 We also observe an explicit connection between the Lyapunov surface and this more general concept of basin of attraction. For the small neighborhood $\mathcal{U}$ of $\overline{x}$, where $V(x)$ is negative definite, it can be shown that the sets $\mathcal{U}_c = \{x \in \mathcal{U} : V(x) \leq c\}$ are in the basin of attraction of $\overline{x}$ \cite{anovozhilov}.
 
+\subsection{The Hopfield network}
+
+We note that the Hopfield network is an example of an autoassociative memory model whose optimization involves minimizing an energy function which is a Lyapunov function, so the above theory can be applied in the analysis of the model \cite[p. 691]{Haykin:2009:NNC:1213811}.
+
 \section{RNNs and information persistence}
 
 We present the following definition \cite[p. 381]{Goodfellow-et-al-2016} of what we call a ``standard RNN'':
@@ -715,16 +719,34 @@ Rectified linear units, or ReLUs, seem to have been introduced by \citealt{hahnl
 \begin{equation*}
 f(x) = \max(0, x)
 \end{equation*}
+%
+So if $\mbox{activ}(x) = f(x)$ then $J_{x}\mbox{ activ}(x)$ equals $1$ for $x > 0$ and $0$ otherwise.
 
 \subsection{The Adam optimizer}
 
+The Adam optimizer falls into the category of gradient-based training methods. The gradient descent algorithm is, for parameter matrix $\theta$ \cite[p. 4]{sutskever2013training},
+
+\begin{equation*}
+\theta_i = \theta_{i-1} - \eta J_{\theta_{i-1}} F(\theta_{i-1})
+\end{equation*}
+%
+where $F$ indicates a cost function. A variant on this is gradient descent with momentum \cite[p. 5]{sutskever2013training}:
+
+\begin{equation*}
+\theta_i = \mu \theta_{i-1} - \eta J_{\theta_{i-1}} F(\theta_{i-1})
+\end{equation*}
+
+The Adam optimizer follows the form of gradient descent with momentum, but follows the update rule
+
+\begin{equation*}
+  \theta_i = \theta_{i-1} - \frac{\eta}{\sqrt{\widehat{v_i}}}\widehat{m_i}
+\end{equation*}
+%
+where $\widehat{m_i}$ and $\widehat{v_i}$ are bias-corrected estimates of mean and variance of the gradient of $\theta$ \cite{DBLP:journals/corr/KingmaB14}.
+
 \subsection{Layer normalization}
 
-\section{The Hopfield network as an example of an autoassociative memory model}
-
-We examine below the Hopfield network, a well-known model that is suited for the autoassociative memory task and which is an application of the additive model of the neuron.
-
-\cite{Yegnanarayana:2004:ANN:1197006}.
+Layer normalization \cite{DBLP:journals/corr/BaKH16} transforms the $a_t$ being passed to the activation function by subtracting the mean and dividing by the standard deviation whose values are kept updated through time. This effectively minimizes the effect on the gradients of large deviations (``errors'') in the $a_t$ which speeds up convergence in gradient training.
 
 \begin{table*}[t]
   \caption{Project timeline}
