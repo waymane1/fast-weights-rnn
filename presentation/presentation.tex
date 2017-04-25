@@ -39,7 +39,7 @@
   \frametitle{RNN basics}
   For the associative retrieval task, we wish to only look at the end-of-sequence $y_t$ so the error function becomes
   \begin{equation*}
-    E = -\ln(p) = \sum_{j=1}^k y_{t k} \ln\left(\widehat{y_{t j}}\right) = E_t    
+    E = -\ln(p) = \sum_{j=1}^k y_{t k} \ln\left(\widehat{y_{t j}}\right) = E_t
   \end{equation*}
 \end{frame}
 
@@ -51,7 +51,7 @@
       o(t) & = c + V h(t) \\
       \widehat{y}(t) & = \mbox{softmax}(o(t))
     \end{align*}
-  Note that $W$ and $U$ when chosen with gradient-training procedures will choose $W$ and $U$ that influence $h_t$ such that $E_t$ over the entire batch is minimized (i.e. the ``average error'') is small. Can we do better? 
+  Note that $W$ and $U$ when chosen with gradient-training procedures will choose $W$ and $U$ that influence $h_t$ such that $E_t$ over the entire batch is minimized (i.e. the ``average error'') is small. Can we do better?
 \end{frame}
 
 \begin{frame}
@@ -93,7 +93,7 @@ we see that again $A$ performs recall perfectly since for all $j$,
   Using outer products to create memory storage is referred to ``the generalization of Hebb's postulate of learning'' (Haykin, \emph{Neural Networks and Learning Machines} 2009) since weight updates in Hebbian learning are calculated with outer products.
 
   \vspace{0.5cm}
-  
+
   Note that generally, not all sets of key patterns would be orthogonal; we discuss the implications of this when we consider the associative memory structure from the Fast Weights paper.
 \end{frame}
 
@@ -112,7 +112,7 @@ we see that again $A$ performs recall perfectly since for all $j$,
   When discussing stability for such a network, we are referring to the stability of the hidden unit $h$. For a sequence task, the hidden unit at each point in time should predict the desired output, and should incorporate information from as many previous time steps as will affect the desired output.
 
     \vspace{0.5cm}
-  
+
   We consider
 
 \begin{equation*}
@@ -136,7 +136,7 @@ where $M$ is the map taking $h(t - 1)$ to $h(t)$ for the system where $Ux(t)$ is
 \begin{frame}
   \frametitle{Vanishing gradients in RNNs}
   The authors show that unfortunately, in the region $\gamma$, the gradient of the current state $h(t)$ with respect to $h(\tau), \tau \ll t$ decays quite rapidly. This is an issue because gradient-based training methods, the update to the weight matrix $W$ is adjusted in proportion to these gradients. So, ironically, when the system is in the desired reduced attracting set, we cannot properly train the network, and when the system is not in that set, the weight matrix may change in undesired ways.
-  
+
 \begin{center}
 \includegraphics[scale=0.20]{bengio_picture.png} \includegraphics[scale=0.20]{bengio_picture2.png}
 \end{center}
@@ -154,7 +154,7 @@ where $M$ is the map taking $h(t - 1)$ to $h(t)$ for the system where $Ux(t)$ is
   The second term cannot be reformulated to include $J_{a_{t-1}} E_t$ since the chain of derivatives has been ``broken'' (i.e. $J_{h_{t-1}} a_t$, the ``connecting term,'' does not appear).
 
   \vspace{0.5cm}
-  
+
   A solution to this is to use the notation $W_t$ to represent the $W$ appearing at each time step (Goodfellow et al. 2016, p. 386). Using this notation, $J_{W} E_t$ becomes
 
   \begin{equation*}
@@ -216,6 +216,23 @@ So $A_{t-1} h_t$ represents the weighted sum of all $h_\tau,\, 1 \leq \tau \leq 
 
 \begin{frame}
   \frametitle{Associative retrieval task results}
+  \begin{center}
+  \includegraphics[scale=0.20]{../final/images/fast_weight_r_50_accuracy.png}
+  \includegraphics[scale=0.20]{../final/images/fast_weight_r_50_cost.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Associative retrieval task results}
+  \begin{center}
+    \begin{tabular}{lccc}
+      Model & R = 20 & R = 50 & R = 100 \\
+      \hline
+      IRNN & 71.2\% & 64.6\% & -\% \\
+      LSTM & 53.3\% & 3.88\% & -\% \\
+      FW RNN & 3.78\% & 0.00\% & -\%
+    \end{tabular}
+  \end{center}
 \end{frame}
 
 % etc
