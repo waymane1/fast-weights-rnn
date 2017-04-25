@@ -80,11 +80,11 @@ or, writing out the matrices fully,
   \begin{bmatrix}
     \frac{dw_{11}}{dt} & \cdots & \frac{dw_{m1}}{dt} \\
     \vdots & \vdots & \vdots \\
-    \frac{dw_{1n}}{dt} & \cdots & \frac{dw_{mn}}{dt} \\    
+    \frac{dw_{1n}}{dt} & \cdots & \frac{dw_{mn}}{dt} \\
   \end{bmatrix} = \begin{bmatrix}
     x_1 x_1 & \cdots & x_n x_1 \\
     \vdots & \cdots & \vdots \\
-    x_1 x_n & \cdots & x_n x_n 
+    x_1 x_n & \cdots & x_n x_n
   \end{bmatrix} \\
   & \hspace{-1.0cm}\begin{bmatrix}
     w_{11} & \cdots & w_{m1} \\
@@ -171,8 +171,8 @@ We consider the case where $x_j(k)$ are sampled from, say, a Gaussian distributi
 
 \begin{enumerate}
 \item If $|w| < 1$, the effect of the signal will decay towards $0$.
-\item If $w = 1$, the system will diverge with the trend of $y_k(n)$ being linear. 
-\item If $w > 1$, the system will diverge with the trend of $y_k(n)$ being exponential.  
+\item If $w = 1$, the system will diverge with the trend of $y_k(n)$ being linear.
+\item If $w > 1$, the system will diverge with the trend of $y_k(n)$ being exponential.
 \end{enumerate}
 
 \subsection{Stability for autonomous dynamic systems}
@@ -252,7 +252,7 @@ The above analysis is limited in the sense that it says nothing about whether or
   \begin{equation*}
     \norm{x(0) - \overline{x}}_2 < \delta
   \end{equation*}
-  implies 
+  implies
   \begin{equation*}
     \norm{x(t) - \overline{x}}_2 < \epsilon
   \end{equation*}
@@ -266,7 +266,7 @@ In other words, for a uniformly stable equilibrium state, we can guarantee that 
   \begin{equation*}
     \norm{x(0) - \overline{x}}_2 < \delta
   \end{equation*}
-  implies 
+  implies
   \begin{equation*}
     \lim_{t \to \infty} x(t) = \overline{x}
   \end{equation*}
@@ -731,16 +731,16 @@ We implemented the Fast Weights RNN using TensorFlow \cite{abadi2016tensorflow} 
   \begin{tabular}{lccc}
     Model & R = 20 & R = 50 & R = 100 \\
     \hline
-    IRNN & & & \\
-    LSTM & & & \\
-    FW RNN & & & 
+    IRNN & 71.2\% & 64.6\% & -\% \\
+    LSTM & 53.3\% & 3.88\% & -\% \\
+    FW RNN & 3.78\% & 0.00\% & -\%
   \end{tabular}
 \end{center}
 %
 We did not perform the validation step with grid search, which accounts for the discrepancy between our results and those of the original paper.
 
-%\begin{figure}
-  %\centering
-  %\includegraphics[width=0.5\textwidth]{gull.png}
-  %\caption{A picture of a gull.}
-%\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.20]{../final/images/fast_weight_r_50_accuracy.png} \\
+  \caption{Accuracy for the fast weights augented RNN with R=50.}
+\end{figure}
