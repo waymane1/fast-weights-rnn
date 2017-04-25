@@ -314,7 +314,7 @@ Although the above exposition regarding Lyapunov surfaces is useful for intuitiv
 The \emph{basin of attraction} of an equilibrium state $\overline{x}$ is the set of all $x$ such that $x(t) \to \overline{x}$ when $t \to \infty$ \cite{ocostin}.
 \end{definition}
 
-Note that this definition can be applied to nonautonomous systems as well. We also note that basins of attraction are usually defined with respect to \emph{attractors} of which there are four types, one of which is the equilibrium state (called an \emph{equilibrium point attractor} in this context \cite[p. 179]{DBLP:journals/ai/Beer95}). We restrict our consideration to equilibrium point attractors for the time being, which allows us to use the above more restricted definition.
+Note that this definition can be applied to nonautonomous systems as well. We also note that basins of attraction are usually defined with respect to \emph{attractors} of which there are four types, one of which is the equilibrium state (called an \emph{equilibrium point attractor} in this context \cite[p. 179]{DBLP:journals/ai/Beer95}). The above definition of basin of attraction applies to equilibrium point attractors.
 
 We also observe an explicit connection between the Lyapunov surface and this more general concept of basin of attraction. For the small neighborhood $\mathcal{U}$ of $\overline{x}$, where $V(x)$ is negative definite, it can be shown that the sets $\mathcal{U}_c = \{x \in \mathcal{U} : V(x) \leq c\}$ are in the basin of attraction of $\overline{x}$ \cite{anovozhilov}.
 
@@ -358,7 +358,7 @@ When discussing stability for such a network, we are referring to the stability 
 We consider
 
 \begin{equation*}
-h(t) = \tanh(a(t)) = \tanh(b + W h(t-1)) = M h(t-1)
+h(t) = \mbox{activ}(a(t)) = \mbox{activ}(b + W h(t-1)) = M h(t-1)
 \end{equation*}
 %
 where $M$ is the map taking $h(t - 1)$ to $h(t)$ for the system where $Ux(t)$ is not included (so the system is autonomous). If $h(0)$ begins within a basin of attraction then by our above analysis it will approach an attractor over time. In practice, if $h(0)$ and $W$ are initialized properly, we may be able to guarantee $h$ will begin in the correct basin of attraction (assuming the attractors even exist in the first place).
@@ -389,7 +389,7 @@ Now assume the model we specify is the RNN model from above. In that model, maki
 
 \section{Training RNNs}
 
-\citealt{DBLP:conf/nips/BaHMLI16} do not specify which cost function was used for training. Since a softmax function is used to produce the predicted values \cite[p. 5]{DBLP:conf/nips/BaHMLI16}, the predicted values can be interpreted as probabilities and we can thus use the cross-entropy cost function for the multiclass classification problem \cite{bishop2006pattern},
+Since a softmax function is used to produce the predicted values \cite[p. 5]{DBLP:conf/nips/BaHMLI16}, the predicted values can be interpreted as probabilities and we can thus use the cross-entropy cost function for the multiclass classification problem \cite{bishop2006pattern},
 
 \begin{equation*}
 p(y; U, W, V) = \prod_{\tau=1}^{t}\prod_{j=1}^{k}\widehat{y_{\tau j}}^{y_{\tau j}}
