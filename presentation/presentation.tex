@@ -103,13 +103,13 @@ we see that again $A$ performs recall perfectly since for all $j$,
 
   \vspace{0.5cm}
 
-  However the concepts of \emph{attractors} and \emph{basins of attraction} are useful to understand the behavior of the network. For the most simple type of attractor, the equilibrium point attractor, the \emph{basin of attraction} of an equilibrium state $\overline{x}$ is the set of all $x$ such that $x(t) \to \overline{x}$ when $t \to \infty$. We note that an attractor can consist of multiple points.
+  However the concepts of \emph{attractors} and \emph{basins of attraction} are useful to understand the behavior of the network. For the most simple type of attractor, the equilibrium point attractor, the \emph{basin of attraction} of an equilibrium state $\overline{x}$ is the set of all $x$ such that $x(t) \to \overline{x}$ when $t \to \infty$ (for our network, the $x$ are $h_\tau$ for $\tau \leq t$.
 \end{frame}
 
 
 \begin{frame}
   \frametitle{Dynamic systems approach}
-  When discussing stability for such a network, we are referring to the stability of the hidden unit $h$. For a sequence task, the hidden unit at each point in time should predict the desired output, and should incorporate information from as many previous time steps as will affect the desired output.
+  When discussing stability for such a network, we are referring to the stability of the hidden unit $h$.
 
     \vspace{0.5cm}
 
@@ -119,7 +119,7 @@ we see that again $A$ performs recall perfectly since for all $j$,
 h(t) = \mbox{activ}(a(t)) = \mbox{activ}(b + W h(t-1)) = M h(t-1)
 \end{equation*}
 %
-where $M$ is the map taking $h(t - 1)$ to $h(t)$ for the system where $Ux(t)$ is not included (so the system is autonomous). If $h(0)$ begins within a basin of attraction then it will approach an attractor over time. In practice, if $h(0)$ and $W$ are initialized properly, we may be able to guarantee $h$ will begin in the correct basin of attraction (assuming the attractors even exist in the first place).
+where $M$ is the map taking $h(t - 1)$ to $h(t)$ for the system where $Ux(t)$ is not included (so the system is autonomous). By defintion for a given $W$ the $h_\tau$ are in the basin of attraction corresponding to the attractor $h_t$ since they approach $h_t$. In practice, if $h(0)$ and $W$ are initialized properly, we may be able to guarantee $h$ will begin in the correct basin of attraction (that of the $h_t$ we want).
 
 \end{frame}
 
@@ -186,9 +186,9 @@ So once $\delta_{t-1}^t$ has been calculated, the calculation of the Jacobian wi
   \frametitle{Fast weights augmentation to RNNs}
   The Fast Weights augmented RNN has $h_t$ of the form:
     \begin{equation*}
-      h_t^{s+1} = \mbox{activ}\left(LN(b + Wh_{t-1} + Ux_t) + A_t h_{t-1}^s\right)
+      h_t^{s+1} = \mbox{activ}\left(LN(b + Wh_{t-1} + Ux_t) + A_t h_{t}^s\right)
     \end{equation*}
-    where the superscript $s$ on $h_{t-1}$ is not a power but an index indicating the number of iterations for the inner loop, and where $LN$ indicates the layer normalization procedure. The $A_t$ term is the fast weights matrix.
+    where the superscript $s$ on $h_{t-1}$ is not a power but an index indicating the current iteration of the inner loop ($s \leq S$), and where $LN$ indicates the layer normalization procedure. The $A_t$ term is the fast weights matrix.
 \end{frame}
 
 \begin{frame}
@@ -242,9 +242,9 @@ So $A_{t-1} h_t$ represents the weighted sum of all $h_\tau,\, 1 \leq \tau \leq 
     \begin{tabular}{lccc}
       Model & R = 20 & R = 50 & R = 100 \\
       \hline
-      IRNN & 71.2\% & 64.6\% & -\% \\
-      LSTM & 53.3\% & 3.88\% & -\% \\
-      FW RNN & 3.78\% & 0.00\% & -\%
+      IRNN & 71.2\% & 64.6\% & 3.11\% \\
+      LSTM & 53.3\% & 3.88\% & 1.02\% \\
+      FW RNN & 3.78\% & 0.00\% & 0.00\%
     \end{tabular}
   \end{center}
 

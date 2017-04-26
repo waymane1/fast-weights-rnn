@@ -350,7 +350,7 @@ We choose our dimensions as:
 \end{tabular}
 \end{center}
 
-When discussing stability for such a network, we are referring to the stability of the hidden unit $h$. For a sequence task, the hidden unit at each point in time should predict the desired output, and should incorporate information from as many previous time steps as will affect the desired output.
+When discussing stability for such a network, we are referring to the stability of the hidden unit $h$. For the associative retrieval task, the error is calculated only using the output at the final time step.
 
 We consider
 
@@ -358,7 +358,7 @@ We consider
 h(t) = \mbox{activ}(a(t)) = \mbox{activ}(b + W h(t-1)) = M h(t-1)
 \end{equation*}
 %
-where $M$ is the map taking $h(t - 1)$ to $h(t)$ for the system where $Ux(t)$ is not included (so the system is autonomous). If $h(0)$ begins within a basin of attraction then by our above analysis it will approach an attractor over time. In practice, if $h(0)$ and $W$ are initialized properly, we may be able to guarantee $h$ will begin in the correct basin of attraction (assuming the attractors even exist in the first place).
+where $M$ is the map taking $h(t - 1)$ to $h(t)$ for the system where $Ux(t)$ is not included (so the system is autonomous). By defintion for a given $W$ the $h_\tau$ are in the basin of attraction corresponding to the attractor $h_t$ since they approach $h_t$. In practice, if $h(0)$ and $W$ are initialized properly, we may be able to guarantee $h$ will begin in the correct basin of attraction (that of the $h_t$ we want).
 
 We summarize the argument of \citealt{DBLP:journals/tnn/BengioSF94} which is restated in \citealt{Hochreiter2001}. Assuming we are in the desired basin of attraction of a hyperbolic attractor (either an equilibrium point attractor or a periodic (limit cycle) attractor), if we consider only the autonomous system, the system will converge to the attractor. If the system is made nonautonomous by the inclusion of the additive term $Ux(t)$, as long as $Ux(t)$ is in a subset of the \emph{reduced attracting set} of the attractor, the system will still converge to the attractor \cite[p. 160]{DBLP:journals/tnn/BengioSF94}. However, if this condition is violated, the state of the hidden units may drift away from the attractor even if the state is still in the basin of attraction. \citeauthor*{DBLP:journals/tnn/BengioSF94} show that the reduced attracting set is defined as $\norm{J_x M} < 1$, i.e. the matrix norm of the Jacobian matrix of the mapping is less than 1 (for brevity, we ignore their discussion of uncertainty here). In short, when $Ux(t)$ is not in the reduced attracting set, the effect of such inputs $x(t)$ may be to push the state into a different basin of attraction than that of our desired hidden state. This may happen when, for example, the data is ``noisy,'' so that not all the information of $x(t)$ leads the model to converge to the desired attractor.
 
