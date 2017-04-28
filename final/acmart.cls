@@ -1022,6 +1022,8 @@ Computing Machinery]
 \terms{}
 \def\keywords#1{\def\@keywords{#1}}
 \keywords{}
+\def\ourdate#1{\def\@ourdate{#1}}
+\ourdate{}
 \renewenvironment{abstract}{\Collect@Body\@saveabstract}{}
 \long\def\@saveabstract#1{\long\gdef\@abstract{#1}}
 \@saveabstract{}
@@ -1308,48 +1310,50 @@ Computing Machinery]
       \def\par{\let\par\@par}\parindent\z@\@setthanks}%
   \fi
   \footnotetextcopyrightpermission{\parindent\z@\parskip0.1\baselineskip
-  \if@ACM@authorversion\else
-    \if@printpermission\@copyrightpermission\par\fi
-  \fi
-  \if@ACM@manuscript\else
-    \if@ACM@journal\else % Print the conference short name
-      {\itshape \acmConference@shortname, \acmConference@venue}\par
-    \fi
-  \fi
-  \if@printcopyright
-    \copyright\ \@copyrightyear\ \@copyrightowner\
-  \else
-    \@copyrightyear.\
-  \fi
-  \if@ACM@manuscript
-    Manuscript submitted to ACM\\
-  \else
-    \if@ACM@authorversion
-        This is the author's version of the work. It is posted here for
-        your personal use. Not for redistribution. The definitive Version
-        of Record was published in
-        \if@ACM@journal
-          \emph{\@journalName}%
-        \else
-          \emph{Proceedings of \acmConference@name, \acmConference@date}%
-        \fi
-        \ifx\@acmDOI\@empty
-        .
-        \else
-          , \@formatdoi{\@acmDOI}.
-        \fi\\
-      \else
-        \if@ACM@journal
-          \@permissionCodeOne/\@acmYear/\@acmMonth-ART\@acmArticle\
-          \$\@acmPrice\\
-          DOI: \nolinkurl{\@acmDOI}%
-        \else % Conference
-           \@acmISBN
-           \ifx\@acmPrice\@empty.\else\dots\$\@acmPrice\fi\\
-           DOI: \nolinkurl{\@acmDOI}%
-        \fi
-      \fi
-    \fi}%
+  %% \if@ACM@authorversion\else
+  %%   \if@printpermission\@copyrightpermission\par\fi
+  %% \fi
+  %% \if@ACM@manuscript\else
+  %%   \if@ACM@journal\else % Print the conference short name
+  %%     {\itshape \acmConference@shortname, \acmConference@venue}\par
+  %%   \fi
+  %% \fi
+  %% \if@printcopyright
+  %%   \copyright\ \@copyrightyear\ \@copyrightowner\
+  %% \else
+  %%   \@copyrightyear.\
+  %% \fi
+  %% \if@ACM@manuscript
+  %%   Manuscript submitted to ACM\\
+  %% \else
+  %%   \if@ACM@authorversion
+  %%       This is the author's version of the work. It is posted here for
+  %%       your personal use. Not for redistribution. The definitive Version
+  %%       of Record was published in
+  %%       \if@ACM@journal
+  %%         \emph{\@journalName}%
+  %%       \else
+  %%         \emph{Proceedings of \acmConference@name, \acmConference@date}%
+  %%       \fi
+  %%       \ifx\@acmDOI\@empty
+  %%       .
+  %%       \else
+  %%         , \@formatdoi{\@acmDOI}.
+  %%       \fi\\
+  %%     \else
+  %%       \if@ACM@journal
+  %%         \@permissionCodeOne/\@acmYear/\@acmMonth-ART\@acmArticle\
+  %%         \$\@acmPrice\\
+  %%         DOI: \nolinkurl{\@acmDOI}%
+  %%       \else % Conference
+  %%          \@acmISBN
+  %%          \ifx\@acmPrice\@empty.\else\dots\$\@acmPrice\fi\\
+  %%          DOI: \nolinkurl{\@acmDOI}%
+  %%       \fi
+  %%     \fi
+    %%   \fi}%
+    Note on contributions: initially we were both working on mathematical derivation/theoretical understanding as well as implementation. However, given the time constraints we decided to officially split our duties between exploring theoretical aspects of the topic (Eric) and taking our current level of understanding and building that into the implementation (Adi). Rather than work in isolation, we constantly discussed new theoretical aspects of the model to make sure our understanding was correct and appropriate, and likewise chose certain aspects on which to focus which were necessary to move forward with the implementation of the model.
+  }
   \endgroup
   \setcounter{footnote}{0}%
   \@mkabstract
@@ -1371,6 +1375,10 @@ Computing Machinery]
        \fi
          \@keywords}\par\egroup
    \fi
+   \ifx\@ourdate\@empty\else\bgroup
+      {\@specialsection{Submitted on}%
+        \@ourdate}\par\egroup
+   \fi   
   \andify\authors
   \andify\shortauthors
   \global\let\authors=\authors

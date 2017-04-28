@@ -4,7 +4,7 @@ Standard recurrent neural networks (RNNs), used for processing of sequential dat
 
 \section{Survey of prior work}
 
-Recurrent neural networks (RNNs) are well-suited for learning from sequential data since weights are shared among different stages of the sequence \cite[p. 373]{Goodfellow-et-al-2016}. In particular, RNNs have been shown to perform well in tasks of speech-to-text conversion, creation of language models for both characters and words \cite{DBLP:conf/icml/SutskeverMH11} and even frame by frame video analyses \cite{mnih}. In RNNs, a given hidden state essentially acts as short-term memory for the previous state, determining the next hidden state together with the next input. One major issue in training RNNs with long input sequences is that the error gradients end up becoming very large or small \cite[p. 16]{DBLP:journals/nn/Schmidhuber15} which implies that even if the network can be trained, the effect of an early hidden state on the current hidden state is practically non-existent. This problem was overcome by the introduction of the long short-term memory RNN (LSTM RNN), whose activation function has a constant derivative and thus does not explode or vanish \cite[p. 19]{DBLP:journals/nn/Schmidhuber15}. Unfortunately, the LSTM RNN's memory is still limited to an amount proportional to the number of hidden units in a sequence \cite[p. 1]{DBLP:conf/nips/BaHMLI16}. Ba et al. propose the Fast Weights method to allow sequence-to-sequence memory in a recurrent network. We also note that Hopfield nets \cite{MacKay:2002:ITI:971143} implemented a similar storage rule \cite[p. 2]{DBLP:conf/nips/BaHMLI16} which we will review in our paper.
+Recurrent neural networks (RNNs) are well-suited for learning from sequential data since weights are shared among different stages of the sequence \cite[p. 373]{Goodfellow-et-al-2016}. In particular, RNNs have been shown to perform well in tasks of speech-to-text conversion, creation of language models for both characters and words \cite{DBLP:conf/icml/SutskeverMH11} and even frame by frame video analyses \cite{mnih}. RNNs have between-sequence memory stored the weight matrices which left-multiply the hidden and input states, as well as within-sequence memory, represented by the ever-changing hidden state. One major issue in training RNNs with long input sequences is that the error gradients end up becoming very large or small \cite[p. 16]{DBLP:journals/nn/Schmidhuber15} which implies that even if the network can be trained, the effect of an early hidden state on the current hidden state is practically non-existent. This problem was overcome by the introduction of the long short-term memory RNN (LSTM RNN), whose activation function has a constant derivative and thus does not explode or vanish \cite[p. 19]{DBLP:journals/nn/Schmidhuber15}. Further work identified methods of initialization of the weight matrices (for example \citealt{DBLP:journals/corr/LeJH15}) as well as the use of different activation functions as a method of avoiding such issues. Regarding associative memory, the Hopfield network \cite[p. 690-703]{Haykin:2009:NNC:1213811} is a well-known network that was designed to perform associative memory retrieval.
 
 \section{Memory and recurrent neural networks}
 
@@ -395,18 +395,23 @@ p(y; U, W, V) = \prod_{\tau=1}^{t}\prod_{j=1}^{k}\widehat{y_{\tau j}}^{y_{\tau j
 We minimize the negative logarithm of the cross entropy,
 
 \begin{equation*}
-  E = -\ln(p) = -\sum_{\tau=1}^t \sum_{j=1}^k y_{\tau k} \ln\left(\widehat{y_{\tau j}}\right) = \sum_{\tau=1}^{t} E_t
+  E = -\ln(p) = -\sum_{\tau=1}^t \sum_{j=1}^k y_{\tau k} \ln\left(\widehat{y_{\tau j}}\right) = \sum_{\tau=1}^{t} E_\tau
 \end{equation*}
 %
 where
 
 \begin{equation*}
-  E_t = -\sum_{j=1}^{k} y_{tj} \ln \left(\widehat{y_{tj}}\right)
+  E_\tau = -\sum_{j=1}^{k} y_{\tau j} \ln \left(\widehat{y_{\tau j}}\right)
+\end{equation*}
+
+Note that for the associative retrieval task described in the Fast Weights paper and which is reproduced in Section ~\ref{sec:assoc_retrieval_task_performance}, we wish to only look at the end-of-sequence $y_t$ so the error function becomes
+\begin{equation*}
+  E = -\ln(p) = \sum_{j=1}^k y_{t k} \ln\left(\widehat{y_{t j}}\right) = E_t
 \end{equation*}
 
 \subsection{A note on Jacobians when matrices are involved}
 
-Many of the often-seen versions of matrix derivatives have shortcomings when generalizing them to cases when both a vector and a matrix or a matrix and a matrix are involved \cite[p. 193-197]{magnus1999matrix}. We use the definition recommended by \citet{magnus1999matrix}, for which all properties of Jacobian matrices are properly preserved. In order to state it, we first define the $\mbox{vec}$ operator:
+Many of the often-seen versions of matrix derivatives have shortcomings when generalizing them to cases when both a vector and a matrix or a matrix and a matrix are involved \cite[p. 193-197]{magnus2007matrix}. We use the definition recommended by \citet{magnus2007matrix}, for which all properties of Jacobian matrices are properly preserved. In order to state it, we first define the $\mbox{vec}$ operator:
 
 \begin{definition}
   Let $A$ be an $m \times n$ matrix and $a_i$ its $j$-th column. Then $\mbox{vec } A$ is the $mn \times 1$ vector
@@ -415,7 +420,7 @@ Many of the often-seen versions of matrix derivatives have shortcomings when gen
       a_1 \\ a_2 \\ \vdots \\ a_n
       \end{pmatrix}
   \end{equation*}
-  \cite[p. 34]{magnus1999matrix}
+  \cite[p. 34]{magnus2007matrix}
 \end{definition}
 
 The definition of the Jacobian is as follows:
@@ -425,6 +430,7 @@ The definition of the Jacobian is as follows:
 \begin{equation*}
   D F(X) = \frac{\partial \mbox{ vec } F(X)}{\partial (\mbox{vec } X)^T}
 \end{equation*}
+\cite[p. 196]{magnus2007matrix}
 \end{definition}
 
 \subsection{Jacobians of the error term with respect to weights and their back-propagation}
@@ -724,6 +730,7 @@ where $\widehat{m_i}$ and $\widehat{v_i}$ are bias-corrected estimates of mean a
 Layer normalization \cite{DBLP:journals/corr/BaKH16} transforms the $a_t$ being passed to the activation function by subtracting the mean and dividing by the standard deviation whose values are kept updated through time. This effectively minimizes the effect on the gradients of large deviations (``errors'') in the $a_t$ which speeds up convergence in gradient training.
 
 \section{Performance of Fast Weights RNN for associative retrieval task}
+\label{sec:assoc_retrieval_task_performance}
 
 We implemented the Fast Weights RNN using TensorFlow \cite{abadi2016tensorflow} and tested its performance versus an IRNN on the associative retrieval task described in \citealt{DBLP:conf/nips/BaHMLI16}, Section 4.1. Our results were as follows (FW RNN refers to Fast Weights-augmented RNN):
 
@@ -731,16 +738,16 @@ We implemented the Fast Weights RNN using TensorFlow \cite{abadi2016tensorflow} 
   \begin{tabular}{lccc}
     Model & R = 20 & R = 50 & R = 100 \\
     \hline
-    IRNN & 71.2\% & 64.6\% & -\% \\
-    LSTM & 53.3\% & 3.88\% & -\% \\
-    FW RNN & 3.78\% & 0.00\% & -\%
+    IRNN & 71.2\% & 64.6\% & 3.11\% \\
+    LSTM & 53.3\% & 3.88\% & 1.02\% \\
+    FW RNN & 3.78\% & 0.00\% & 0.00\%
   \end{tabular}
 \end{center}
 %
-We did not perform the validation step with grid search, which accounts for the discrepancy between our results and those of the original paper.
+where $R$ indicates the dimension of the $h_t$. We did not perform the validation step with grid search, which accounts for the discrepancy between our results and those of the original paper.
 
 \begin{figure}
   \centering
   \includegraphics[scale=0.30]{../final/images/fast_weight_r_50_accuracy.png} \\
-  \caption{Accuracy for the fast weights augented RNN with R=50.}
+  \caption{Accuracy for the fast weights augmented RNN with R=50.}
 \end{figure}
