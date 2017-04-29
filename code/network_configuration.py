@@ -12,6 +12,6 @@ class NetworkConfig(object):
         self.rnn_size = rnn_size
         self.batch_size = batch_size
         self.grad_clip = grad_clip
-        self.vocab_size = 37
+        self.size_chars = 37
         self.data_filename = data_filename
         self.embedding_size = 100
